@@ -97,4 +97,8 @@ Afterwards, you need to give your main the permission to execute. You can use th
 ```bash
 sudo chmod u+x ./main
 ```
+You will see a few request on permitting the installation, press **Y** and press **Enter**
+
+![alt_text](https://github.com/Ngai-Lam-Chou/2420-Assignment-1/blob/main/assets/installation.png)
+
 ---
