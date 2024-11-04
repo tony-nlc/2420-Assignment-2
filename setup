@@ -1,0 +1,7 @@
+#!/bin/bash
+# Step 1: Clone the configuration files
+git init # Initialize a git repository
+git clone https://gitlab.com/cit2420/2420-as2-starting-files main # Git clone the setup repository
+
+# Step 2: Install the dependency and install packages
+sudo pacman -S kakoune tmux unzip # Install two packages as user-defined

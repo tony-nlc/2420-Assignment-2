@@ -23,15 +23,16 @@ The script we are creating will includes the following two actions:
 
 This script will help us quickly configure a new system environment by pulling configurations from a Git repository and installing essential packages.
 
+-   Tmux https://wiki.archlinux.org/title/Tmux
+-   Kakoune https://wiki.archlinux.org/title/Kakoune
+
 https://docs.gitlab.com/ee/topics/git/clone.html
-https://wiki.archlinux.org/title/Tmux
-https://wiki.archlinux.org/title/Kakoune
 
 **Script 1.1: Cloning Configuration & Installing Packages**
 
 ```bash
 #!/bin/bash
-# Filename:link.sh
+# Filename: setup
 # Description: Intialize Git and download user-defined packages
 
 # Step 1: Clone the configuration files
@@ -46,7 +47,7 @@ sudo pacman -S kakoune tmux unzip # Install two packages as user-defined
 
 ```bash
 #!/bin/bash
-# Filename: link.sh
+# Filename: link
 # Description: Link config files and bin files to our bin and .config
 
 # Error Handling Function
@@ -84,9 +85,16 @@ done
 
 ```bash
 #!/bin/bash
-# Filename: main.sh
+# Filename: main
 # Description: Run setup.sh and link.sh
 
 ./setup # Run the setup script
 ./link # Run the link script
 ```
+
+Afterwards, you need to give your main the permission to execute. You can use the following line of command to grant execute permission to user.
+
+```bash
+sudo chmod u+x ./main
+```
+---
