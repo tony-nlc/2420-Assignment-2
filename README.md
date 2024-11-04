@@ -31,6 +31,9 @@ https://wiki.archlinux.org/title/Kakoune
 
 ```bash
 #!/bin/bash
+# Filename:link.sh
+# Description: Intialize Git and download user-defined packages
+
 # Step 1: Clone the configuration files
 git init # Initialize a git repository
 git clone https://gitlab.com/cit2420/2420-as2-starting-files main # Git clone the setup repository
@@ -43,34 +46,47 @@ sudo pacman -S kakoune tmux unzip # Install two packages as user-defined
 
 ```bash
 #!/bin/bash
+# Filename: link.sh
+# Description: Link config files and bin files to our bin and .config
+
 # Error Handling Function
 mkdir_handle() {
-  local dir_name=$1
-  if ! [[ -d $dir_name ]]; then
-    mkdir $dir_name
+  local dir_name=$1 # Initialize a local variable for storing the directory we are checking
+  if ! [[ -d $dir_name ]]; then # Check if the directory does not exist
+    mkdir $dir_name # Create a directory with the name provided
   fi
 }
+
 # Step 1: Creating Symbolic Link For ~/bin/* and ~/main/bin/*
 mkdir_handle ~/bin # Check if ~/bin exist if not create ~/bin
 
-for file in ~/main/bin/*; do
-  ln -s "$file" ~/bin/$(basename "$file")
+for file in ~/main/bin/*; do # Loop over the file in the git repository's /bin
+  ln -s "$file" ~/bin/$(basename "$file") # Link our ~/bin/<filename> to the file in git repostiroy's /bin/<filename>
 done
 
-# Step 2: Creating Symbolic Link for ~/.config/* and ~/main/config/*/*
-mkdir_handle ~/.config
+# Step 2: Creating Symbolic Link for ~/.config/*/* and ~/main/config/*/*
+mkdir_handle ~/.config # Check if ~/.config exist if not create ~/config
 
-for dir in ~/config/*; do
-  if [ -d "$dir" ]; then
-    subdir_name=$(basename "$dir")
-
-    mkdir_handle "$HOME/.config/$subdir_name"
-
-    for file in "$dir"/*; do
-      if [ -f "$file" ]; then
-        ln -s "$file" "$HOME/.config/$subdir_name/$(basename "$file")"
-      fi
+for dir in ~/config/*; do # Loop over the directory under git repository's /config
+  subdir_name=$(basename "$dir") # Convert the directory path to its basename
+  if ! [[ -d "~/.config/$dir" ]]; then # Check if directory already exist or not
+    mkdir_handle "$HOME/.config/$subdir_name" # Create a subdirectory under .config with the application's name
+  fi
+    for file in "$dir"/*; do # Loop over the file under Git repository's /config/<applicatiob>/name
+      ln -s "$file" "~/.config/$subdir_name/$(basename "$file")" # Link our ~/.config/<application>/<application's config> to the file in git repostiroy's /config/<application>/<config>
     done
   fi
 done
+
+```
+
+**Script 1.3: Activate Script**
+
+```bash
+#!/bin/bash
+# Filename: main.sh
+# Description: Run setup.sh and link.sh
+
+./setup # Run the setup script
+./link # Run the link script
 ```
