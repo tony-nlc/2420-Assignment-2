@@ -15,6 +15,16 @@ mkdir_handle() {
   fi
 }
 
+link() {
+  local source=$1
+  local destination=$2
+  if ! [[ -f $1 ]];then
+    ln -s $1 $2
+  else
+    echo File Already Exist in Path:$2
+    exit 1
+}
+
 # Step 1: Clone configuration files
 git init # Initialize a empty git repository [5]
 git clone https://gitlab.com/cit2420/2420-as2-starting-files main 
@@ -26,7 +36,7 @@ for file in ~/main/bin/*; do
   # Loop over the files under /bin of the remote git repository
   echo "Linking $(basename $file)"
   # Print a message of what file we are handling
-  ln -s "$file" ~/bin/$(basename "$file")
+  link -s "$file" ~/bin/$(basename "$file")
   # Create a symbolic link from the source file to the ~/bin files [3]
   # -s option specifies it is a symbolic link
   # "$file" represents the absolute path of the source file
@@ -47,7 +57,7 @@ for dir in ~/main/config/*; do
     # Loop over the file under the application directory
     echo "Linking $(basename $file)"
     # Print a message of what file we are handling
-    ln -s "$file" "$HOME/.config/$subdir_name/$(basename "$file")"
+    link -s "$file" "$HOME/.config/$subdir_name/$(basename "$file")"
     # Create a symbolic link from the source file to the ~/.config/<application>/ config file [3]
     # -s option specifies it is a symbolic link
     # "$file" represents the absolute path of the source file

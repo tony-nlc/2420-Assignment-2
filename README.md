@@ -52,27 +52,21 @@ unzip
 # Reference:
   # [1] https://ss64.com/bash/syntax-file-operators.html
   # [2] https://ss64.com/bash/syntax-substitution.html
+  # [7] https://man.archlinux.org/man/pacman.8.en
 
 # Step 1: Install dependencies and packages
 if [[ -f requirement ]];then 
   # Check if requirement exist
   # -f checks if requirement is a regular file [1]
-  sudo pacman -S $(cat requirement) 
+  sudo pacman -S --noconfirm $(cat requirement) 
   # Installs packages listed in the 'requirement' file
+  # --noconfirm will skip the confirmation from user [7]
   # $(cat requirement) will substitue the content of requirement [2]
 else
   echo You have not create a requirement file # Print an error message
   exit # Exit the function
 fi
 ```
-**Usage**
-
-1. Create a file named requirement with a list of packages.
-2. Run the setup script.
-
-![install_iamge](https://github.com/tony-nlc/2420-Assignment-2/blob/main/assets/install.png)
-
-3. Confirm installation when prompted by typing **Y** and pressing **Enter**.
 
 **Script 1.2: Creating Symbolic Links**
 
@@ -87,11 +81,22 @@ Sample Script
   # [4] https://ss64.com/bash/basename.html 
   # [5] https://git-scm.com/docs/git-init 
   # [6] https://git-scm.com/docs/git-clone 
-# Error Handling Function
+# Error Handling Function for mkdir
 mkdir_handle() {
   if ! [[ -d $1 ]]; then 
     # Check if directory does not exist [1]
     mkdir $1 # Create directory if it doesnt exist
+  fi
+}
+
+# Error Handling Function for ln
+link() {
+  local source=$1
+  local destination=$2
+  if ! [[ -f $1 ]];then
+    ln -s $1 $2
+  else
+    echo File Already Exist in Path:$2
   fi
 }
 
@@ -106,7 +111,7 @@ for file in ~/main/bin/*; do
   # Loop over the files under /bin of the remote git repository
   echo "Linking $(basename $file)"
   # Print a message of what file we are handling
-  ln -s "$file" ~/bin/$(basename "$file")
+  link "$file" ~/bin/$(basename "$file")
   # Create a symbolic link from the source file to the ~/bin files [3]
   # -s option specifies it is a symbolic link
   # "$file" represents the absolute path of the source file
@@ -127,7 +132,7 @@ for dir in ~/main/config/*; do
     # Loop over the file under the application directory
     echo "Linking $(basename $file)"
     # Print a message of what file we are handling
-    ln -s "$file" "$HOME/.config/$subdir_name/$(basename "$file")"
+    link "$file" "$HOME/.config/$subdir_name/$(basename "$file")"
     # Create a symbolic link from the source file to the ~/.config/<application>/ config file [3]
     # -s option specifies it is a symbolic link
     # "$file" represents the absolute path of the source file
