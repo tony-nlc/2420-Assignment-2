@@ -21,7 +21,7 @@ Script 1.1: Cloning Configuration & Installing Packages
 This script installs packages listed in a `requirement` file.
 
 > [!IMPORTANT]
-> You need to create `requirement` in order to install packages
+> Create `requirement` in order to install packages
 
 **How to create a requirement file**
 ```bash
@@ -31,10 +31,12 @@ touch requirement
 ```bash
 nvim requirement
 ```
-Then, press **i** then start typing the name of packages you wanted to install
+
+>[!TIP]
+> Press **i** then start typing the name of packages you wanted to install
 
 **Example `requirement` File Format**
-```
+```bash
 # Filename: requirement
 # Description: User-defined list of packages
 
@@ -104,10 +106,10 @@ git clone https://gitlab.com/cit2420/2420-as2-starting-files main
 # Step 2: Create symbolic links for binaries
 mkdir_handle ~/bin # Handle if ~/bin already exist
 for file in ~/main/bin/*; do 
-# Loop over the files under /bin of the remote git repository
+  # Loop over the files under /bin of the remote git repository
+  echo "Linking $(basename $file)"
+  # Print a message of what file we are handling
   ln -s "$file" ~/bin/$(basename "$file")
-  
-
   # Create a symbolic link from the source file to the ~/bin files [3]
   # -s option specifies it is a symbolic link
   # "$file" represents the absolute path of the source file
@@ -119,12 +121,15 @@ done
 mkdir_handle ~/.config # Handle if ~/bin already exist
 for dir in ~/main/config/*; do
   # Loop over application directory under config folder in remote git repository 
-  subdir_name=$(basename "$dir") 
+  subdir_name=$(basename "$dir")
+  echo "Looking up under $subdir_name"
   # Get the basename of the directory [4]
   mkdir_handle "~/.config/$subdir_name" 
   # Handle if ~/.config/<application> already exist
   for file in "$dir"/*; do
-  # Loop over the file under the application directory
+    # Loop over the file under the application directory
+    echo "Linking $(basename $file)"
+    # Print a message of what file we are handling
     ln -s "$file" "~/.config/$subdir_name/$(basename "$file")"
     # Create a symbolic link from the source file to the ~/.config/<application>/ config file [3]
     # -s option specifies it is a symbolic link
@@ -145,10 +150,14 @@ Use the following script to run the setup and linking processes:
 ./setup   # Run setup script
 ./link    # Run link script
 ```
-Make the main script executable:
+> [!IMPORTANT]
+> Make the main script executable
+> ```bash
+> sudo chmod u+x ./main # Add execute permission for user
+> ```
 
+Run the main script to set up your system.
 ```bash
-sudo chmod u+x ./main # Add execute permission for user
 ./main # Run the main script
 ```
 ---
