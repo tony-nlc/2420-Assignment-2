@@ -1,0 +1,43 @@
+#!/bin/bash
+# Filename: user
+# Description: Create a new user with the following:
+# Specify a shell
+# Create home directory
+# Clone /etc/skel
+# Group configuration
+# Setup password
+# Reference:
+# [10] https://www.cyberciti.biz/faq/understanding-etcpasswd-file-format/
+
+
+# Get current UID
+user=$UID
+
+
+# Function to change the user's shell
+change_shell() {
+
+}
+
+
+# Function to change user's group
+change_group() {
+
+}
+
+while getopts ":s:g:" opt;do
+  case "${opt}" in
+    s)
+      change_shell ${OPTARG}
+      ;;
+    g)
+      change_group ${OPTARG}
+      ;;
+    :)
+      echo "You need an argument for -$OPTARG option"
+      ;;
+    ?)
+      echo "Not a valid option"
+      ;;
+    esac
+done

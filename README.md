@@ -206,7 +206,7 @@ fi
 Run the main script to set up your system.
 
 ```bash
-sudo ./setup # Run the main script
+sudo ./setup # Run the setup script
 ```
 
 ---
@@ -222,6 +222,7 @@ The User Creation Scripts streamline essential users configuration for a newly i
 
 These scripts provide a fast way to configure a new user by configuring user's group and setting up for shell and home directory.
 
-#### Script 2.1: Specifying
+#### Script 2
 ```bash
+
 ```
