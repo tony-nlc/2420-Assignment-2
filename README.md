@@ -1,104 +1,132 @@
 # 2420-Assignment-2
-
 ## Introduction
 
-This repository contains two Bash scripts for automating system administration tasks. These tasks are designed to help users automate system setup and user management in a Unix environment. Both scripts follow Bash best practices and include error handling, detailed comments, and command-line options.
-
+This repository contains two Bash scripts designed to simplify system administration in a Unix environment. These scripts aim to automate system setup and user management, following Bash best practices with robust error handling, detailed comments, and command-line options for flexibility.
 Project Structure
 
-1. System Setup Scripts: Automating system setup by installing packages and linking configuration files.
-
-2. User Creation Script: Automating user creation, including setting up the user’s environment and permissions.
-
+1. System Setup Scripts: Automates system setup by installing essential packages and linking configuration files.
+2. User Creation Script: Automates the creation of user accounts, including environment and permissions setup.
 ---
+### Project 1: System Setup Scripts
 
-## Project 1
+The System Setup Scripts streamline essential setup tasks for a newly installed system. This script includes:
 
-The **System Setup Scripts** automate essential system setup tasks for a new or freshly installed system.
+* Software Installation: Installs essential packages defined in a requirements file.
 
-The script we are creating will includes the following two actions:
+* Symbolic Linking of Configuration Files: Links user configuration files from a Git repository to the local system.
 
--   Software Installation
--   Symbolic Linking of Configuration Files
+These scripts provide a fast way to configure a new environment by installing necessary software and linking configurations from a Git repository.
+Script 1.1: Cloning Configuration & Installing Packages
 
-This script will help us quickly configure a new system environment by pulling configurations from a Git repository and installing essential packages.
+This script installs packages listed in a `requirement` file.
 
--   Tmux https://wiki.archlinux.org/title/Tmux
--   Kakoune https://wiki.archlinux.org/title/Kakoune
+[!IMPORTANT]
+You need to create `requirement` in order to install packages
+**How to create a requirement file**
+```bash
+touch requirement
+```
+**How to edit a requirement file**
+```bash
+nvim requirement
+```
+Then, press **i** then start typing the name of packages you wanted to install
 
-https://docs.gitlab.com/ee/topics/git/clone.html
+**Example `requirement` File Format**
+```
+# Filename: requirement
+# Description: User-defined list of packages
 
-**Script 1.1: Cloning Configuration & Installing Packages**
+tmux
+kakoune
+unzip
+# Add more as needed
+```
 
+
+**Sample Script**
 ```bash
 #!/bin/bash
 # Filename: setup
-# Description: Intialize Git and download user-defined packages
+# Description: Initialize Git and install user-defined packages
 
-# Step 1: Clone the configuration files
-git init # Initialize a git repository
-git clone https://gitlab.com/cit2420/2420-as2-starting-files main # Git clone the setup repository
-
-# Step 2: Install the dependency and install packages
-sudo pacman -S kakoune tmux unzip # Install two packages as user-defined
+# Step 1: Install dependencies and packages
+if [[ -f requirement ]];then # Check if requirement exist
+  sudo pacman -S $(cat requirement) # Installs packages listed in the 'requirement' file
+else
+  echo You have not create a requirement file # Print an error message
+  exit # Exit the function
+fi
 ```
+Usage
 
-**Script 1.2: Making Symbloic Links**
+1. Create a file named requirement with a list of packages.
+2. Run the setup script.
+3. Confirm installation when prompted by typing **Y** and pressing **Enter**.
 
+**Script 1.2: Creating Symbolic Links**
+
+This script links configuration files and binaries from a Git repository to the system's configuration directories.
+Sample Script
 ```bash
 #!/bin/bash
 # Filename: link
-# Description: Link config files and bin files to our bin and .config
+# Description: Link configuration and binary files to local directories
 
 # Error Handling Function
 mkdir_handle() {
-  local dir_name=$1 # Initialize a local variable for storing the directory we are checking
-  if ! [[ -d $dir_name ]]; then # Check if the directory does not exist
-    mkdir $dir_name # Create a directory with the name provided
+  if ! [[ -d $1 ]]; then # Check if directory does not exist
+    mkdir -p $1 # Create directory if it doesnt exist
   fi
 }
 
-# Step 1: Creating Symbolic Link For ~/bin/* and ~/main/bin/*
-mkdir_handle ~/bin # Check if ~/bin exist if not create ~/bin
+# Step 1: Clone configuration files
+git init # Initialize a empty git repository
+git clone https://gitlab.com/cit2420/2420-as2-starting-files main # Get the files from a remote git repository
 
-for file in ~/main/bin/*; do # Loop over the file in the git repository's /bin
-  ln -s "$file" ~/bin/$(basename "$file") # Link our ~/bin/<filename> to the file in git repostiroy's /bin/<filename>
+# Step 2: Create symbolic links for binaries
+mkdir_handle ~/bin # Handle if ~/bin already exist
+for file in ~/main/bin/*; do # Loop over the files under /bin of the remote git repository
+  ln -s "$file" ~/bin/$(basename "$file")
 done
 
-# Step 2: Creating Symbolic Link for ~/.config/*/* and ~/main/config/*/*
-mkdir_handle ~/.config # Check if ~/.config exist if not create ~/config
-
-for dir in ~/config/*; do # Loop over the directory under git repository's /config
-  subdir_name=$(basename "$dir") # Convert the directory path to its basename
-  if ! [[ -d "~/.config/$dir" ]]; then # Check if directory already exist or not
-    mkdir_handle "$HOME/.config/$subdir_name" # Create a subdirectory under .config with the application's name
-  fi
-    for file in "$dir"/*; do # Loop over the file under Git repository's /config/<applicatiob>/name
-      ln -s "$file" "~/.config/$subdir_name/$(basename "$file")" # Link our ~/.config/<application>/<application's config> to the file in git repostiroy's /config/<application>/<config>
-    done
-  fi
+# Step 3: Create symbolic links for configuration files
+mkdir_handle ~/.config
+for dir in ~/main/config/*; do
+  subdir_name=$(basename "$dir")
+  mkdir_handle "$HOME/.config/$subdir_name"
+  for file in "$dir"/*; do
+    ln -s "$file" "$HOME/.config/$subdir_name/$(basename "$file")"
+  done
 done
-
 ```
+**Script 1.3: Activating the Scripts**
 
-**Script 1.3: Activate Script**
-
+Use the following script to run the setup and linking processes:
 ```bash
 #!/bin/bash
 # Filename: main
-# Description: Run setup.sh and link.sh
+# Description: Run setup and link scripts
 
-./setup # Run the setup script
-./link # Run the link script
+./setup   # Run setup script
+./link    # Run link script
 ```
-
-Afterwards, you need to give your main the permission to execute. You can use the following line of command to grant execute permission to user.
+Make the main script executable:
 
 ```bash
 sudo chmod u+x ./main
 ```
-You will see a few request on permitting the installation, press **Y** and press **Enter**
 
-![alt_text](https://github.com/Ngai-Lam-Chou/2420-Assignment-1/blob/main/assets/installation.png)
+Example Screenshot
+Installation Example
+Project 2: User Creation Script
 
----
+[Details for this section can be added here once specified.]
+Usage
+
+    Prepare the requirement file with the list of packages to install.
+    Clone this repository and navigate into the directory.
+    Make the scripts executable, e.g., chmod +x setup link main.
+    Run the main script to install packages and link configuration files.
+
+Let me know if you need further details or additional sections!
