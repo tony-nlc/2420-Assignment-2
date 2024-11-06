@@ -11,9 +11,9 @@ Project Structure
 
 The System Setup Scripts streamline essential setup tasks for a newly installed system. This script includes:
 
-* Software Installation: Installs essential packages defined in a requirements file.
-
-* Symbolic Linking of Configuration Files: Links user configuration files from a Git repository to the local system.
+>[!NOTE]
+>* Package Installation
+>* Symbolic Linking of Configuration Files
 
 These scripts provide a fast way to configure a new environment by installing necessary software and linking configurations from a Git repository.
 Script 1.1: Cloning Configuration & Installing Packages
@@ -36,10 +36,7 @@ nvim requirement
 > Press **i** then start typing the name of packages you wanted to install
 
 **Example `requirement` File Format**
-```bash
-# Filename: requirement
-# Description: User-defined list of packages
-
+```
 tmux
 kakoune
 unzip
@@ -124,13 +121,13 @@ for dir in ~/main/config/*; do
   subdir_name=$(basename "$dir")
   echo "Looking up under $subdir_name"
   # Get the basename of the directory [4]
-  mkdir_handle "~/.config/$subdir_name" 
+  mkdir_handle "$HOME/.config/$subdir_name" 
   # Handle if ~/.config/<application> already exist
   for file in "$dir"/*; do
     # Loop over the file under the application directory
     echo "Linking $(basename $file)"
     # Print a message of what file we are handling
-    ln -s "$file" "~/.config/$subdir_name/$(basename "$file")"
+    ln -s "$file" "$HOME/.config/$subdir_name/$(basename "$file")"
     # Create a symbolic link from the source file to the ~/.config/<application>/ config file [3]
     # -s option specifies it is a symbolic link
     # "$file" represents the absolute path of the source file
@@ -144,33 +141,29 @@ done
 Use the following script to run the setup and linking processes:
 ```bash
 #!/bin/bash
-# Filename: main
+# Filename: setup
 # Description: Run setup and link scripts
 
-./setup   # Run setup script
+./install   # Run setup script
 ./link    # Run link script
 ```
 > [!IMPORTANT]
 > Make the main script executable
 > ```bash
-> sudo chmod u+x ./main # Add execute permission for user
+> sudo chmod u+x ./install # Add execute permission for user
+> sudo chmod u+x ./link # Add execute permission for user
+> sudo chmod u+x ./setup # Add execute permission for user
 > ```
 
 Run the main script to set up your system.
 ```bash
-./main # Run the main script
+./setup # Run the main script
 ```
 ---
 
-Installation Example
-Project 2: User Creation Script
-
-[Details for this section can be added here once specified.]
-Usage
-
-    Prepare the requirement file with the list of packages to install.
-    Clone this repository and navigate into the directory.
-    Make the scripts executable, e.g., chmod +x setup link main.
-    Run the main script to install packages and link configuration files.
-
-Let me know if you need further details or additional sections!
+## Project 2: User Creation Script
+The User Creation Scripts streamline essential users configuration for a newly installed system. This script includes:
+>[!NOTE]
+>* Shell Configuration
+>* Home Directory Setup
+>* Group Configuration

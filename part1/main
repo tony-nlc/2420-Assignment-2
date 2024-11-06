@@ -1,6 +1,0 @@
-#!/bin/bash
-# Filename: main.sh
-# Description: Run setup.sh and link.sh
-
-./setup # Run the setup script
-./link # Run the link script
