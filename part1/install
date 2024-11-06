@@ -4,16 +4,15 @@
 # Reference:
   # [1] https://ss64.com/bash/syntax-file-operators.html
   # [2] https://ss64.com/bash/syntax-substitution.html
-  # [7] https://ss64.com/bash/tr.html
+
 # Step 1: Install dependencies and packages
-if [[ -f requirement ]];then 
+if [[ -f /home/arch/requirement ]];then 
   # Check if requirement exist
   # -f checks if requirement is a regular file [1]
-  sudo pacman -S $(cat requirement| tr "\r" " ") 
+  pacman -S --noconfirm $(cat requirement | tr "\r" " ") 
   # Installs packages listed in the 'requirement' file
   # $(cat requirement) will substitue the content of requirement [2]
-  # tr will replace all end of line to a space
 else
   echo You have not create a requirement file # Print an error message
-  exit # Exit the function
+  exit 1                                      # Exit the script
 fi
