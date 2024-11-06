@@ -1,15 +1,19 @@
 #!/bin/bash
-# Filename: setup
+# Filename: install
 # Description: Initialize Git and install user-defined packages
 # Reference:
   # [1] https://ss64.com/bash/syntax-file-operators.html
   # [2] https://ss64.com/bash/syntax-substitution.html
 
+
+# Set the username
+username=$1
+
 # Step 1: Install dependencies and packages
-if [[ -f /home/arch/requirement ]];then 
+if [[ -f /home/$username/requirement ]];then 
   # Check if requirement exist
   # -f checks if requirement is a regular file [1]
-  pacman -S --noconfirm $(cat requirement | tr "\r" " ") 
+  pacman -S --noconfirm $(cat /home/$username/requirement | tr "\r" " ") 
   # Installs packages listed in the 'requirement' file
   # $(cat requirement) will substitue the content of requirement [2]
 else

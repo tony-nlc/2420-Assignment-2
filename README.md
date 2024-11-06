@@ -26,7 +26,7 @@ These scripts provide a fast way to configure a new environment by installing ne
 This script installs packages listed in a `requirement` file.
 
 > [!IMPORTANT]
-> Create `requirement` in order to install packages
+> Create `requirement` file in order to install packages
 
 **How to create a requirement file**
 
@@ -42,6 +42,7 @@ nvim requirement
 
 > [!TIP]
 > Press **i** then start typing the name of packages you wanted to install
+> Use **Enter** to separate packages
 
 **Example `requirement` File Format**
 
@@ -56,18 +57,21 @@ unzip
 
 ```bash
 #!/bin/bash
-# Filename: setup
+# Filename: install
 # Description: Initialize Git and install user-defined packages
 # Reference:
   # [1] https://ss64.com/bash/syntax-file-operators.html
   # [2] https://ss64.com/bash/syntax-substitution.html
 
 
+# Set the username
+username=$1
+
 # Step 1: Install dependencies and packages
-if [[ -f /home/arch/requirement ]];then 
+if [[ -f /home/$username/requirement ]];then 
   # Check if requirement exist
   # -f checks if requirement is a regular file [1]
-  pacman -S --noconfirm $(cat requirement | tr "\r" " ") 
+  pacman -S --noconfirm $(cat /home/$username/requirement | tr "\r" " ") 
   # Installs packages listed in the 'requirement' file
   # $(cat requirement) will substitue the content of requirement [2]
 else
@@ -91,12 +95,16 @@ Sample Script
   # [5] https://git-scm.com/docs/git-init 
   # [6] https://git-scm.com/docs/git-clone 
 
+# Set username
+username=$1
 
 # Error handling Function for mkdir
 make_directory() {
   if ! [[ -d $1 ]]; then 
     # Check if directory does not exist [1]
     mkdir $1 # Create directory if it doesnt exist
+  else
+    echo Directory Already Exist in Path:$2
   fi
 }
 
@@ -115,40 +123,40 @@ link() {
 
 
 # Step 1: Clone configuration files
-if ! [[ -d /home/arch/remote ]];then # Check if git remote directory does not exist
-  make_directory /home/arch/remote   # Create a new remote directory
-  cd /home/arch/remote               # Change directory to remote
+if ! [[ -d /home/$username/remote ]];then # Check if git remote directory does not exist
+  make_directory /home/$username/remote   # Create a new remote directory
+  cd /home/$username/remote               # Change directory to remote
   git init                           # Initialize a empty git repository [5]
   git clone https://gitlab.com/cit2420/2420-as2-starting-files main 
   # Get the files from a remote git repository [6]
-  cd /home/arch                      # Change directory back to /home/arch
+  cd /home/$username                      # Change directory back to /home/<username>
 fi
 
 
 # Step 2: Create symbolic links for binaries
-make_directory /home/arch/bin # Handle if ~/bin already exist
+make_directory /home/$username/bin # Handle if ~/bin already exist
 
-for file in /home/arch/remote/main/bin/*; do 
+for file in /home/$username/remote/main/bin/*; do 
   # Loop over the files under /bin of the remote git repository
-  link "$file" /home/arch/bin/$(basename "$file")
+  link "$file" "/home/$username/bin/$(basename "$file")"
   # Create a symbolic link from the source file to the ~/bin files [3]
   # "$file" represents the absolute path of the source file
   # $(basename "$file") extracts the filename [4]
-  # The link will be created in /home/arch/bin with the same name as the source file
+  # The link will be created in /home/<username>/bin with the same name as the source file
 done
 
 
 # Step 3: Create symbolic links for configuration files
-make_directory /home/arch/.config # Handle if ~/bin already exist
+make_directory /home/$username/.config # Handle if ~/bin already exist
 pacman -S --noconfirm tmux kakoune
 
-for dir in /home/arch/remote/main/config/*; do
+for dir in /home/$username/remote/main/config/*; do
   # Loop over application directory under config folder in remote git repository 
   subdir_name=$(basename "$dir")                    # Get the basename of the application [4]
   echo "Looking up under $subdir_name"              # Get the basename of the directory [4]
-  make_directory "/home/arch/.config/$subdir_name"  # Handle if ~/.config/<application> already exist
+  make_directory "/home/$username/.config/$subdir_name"  # Handle if ~/.config/<application> already exist
   for file in "$dir"/*; do                          # Loop over the file under the application directory
-    link "$file" "/home/arch/.config/$subdir_name/$(basename "$file")"
+    link "$file" "/home/$username/.config/$subdir_name/$(basename "$file")"
     # Create a symbolic link from the source file to the /home/arch/.config/<application>/ config file [3]
     # "$file" represents the absolute path of the source file
     # $(basename "$file") extracts the filename without the path [4]
@@ -158,7 +166,7 @@ done
 
 
 # Step 4: Create symbolic links for bashrc file
-link /home/arch/remote/main/home/bashrc /home/arch/.bashrc
+link /home/$username/remote/main/home/bashrc /home/$username/.bashrc
 # Create a symbolic link from the source file to the /home/arch/.bashc
 ```
 
@@ -170,15 +178,20 @@ Use the following script to run the setup and linking processes:
 #!/bin/bash
 # Filename: setup
 # Description: Run setup and link scripts
-# Reference: https://ss64.com/bash/ps.html [8]
+# Reference: 
+# [8] https://ss64.com/bash/ps.html 
+# [9] https://ss64.com/bash/sudo.html
 
 
-if [[ $UID -ne 0 ]];then                # Check if the script is run by root privillege [8]
-  echo "You need to 'sudo' this script" # Print an error message
-  exit 1                                # Exit the script
+user=$SUDO_USER
+if [[ $EUID -ne 0 ]];then                # Check if the script is run by root privillege [8]
+  echo "You need to 'sudo' this script"  # Print an error message
+  exit 1                                 # Exit the script
 fi
-./install                               # Run setup script
-./link                                  # Run link script
+
+
+./install $user                          # Run setup script
+./link $user                             # Run link script
 ```
 
 > [!IMPORTANT]
@@ -193,7 +206,7 @@ fi
 Run the main script to set up your system.
 
 ```bash
-./setup # Run the main script
+sudo ./setup # Run the main script
 ```
 
 ---
@@ -209,4 +222,6 @@ The User Creation Scripts streamline essential users configuration for a newly i
 
 These scripts provide a fast way to configure a new user by configuring user's group and setting up for shell and home directory.
 
-#### Script 2.1
+#### Script 2.1: Specifying
+```bash
+```

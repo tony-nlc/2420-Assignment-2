@@ -1,12 +1,16 @@
 #!/bin/bash
 # Filename: setup
 # Description: Run setup and link scripts
-# Reference: https://ss64.com/bash/ps.html [8]
+# Reference: 
+# [8] https://ss64.com/bash/ps.html 
+# [9] https://ss64.com/bash/sudo.html
 
-
-if [[ $UID -ne 0 ]];then                # Check if the script is run by root privillege [8]
-  echo "You need to 'sudo' this script" # Print an error message
-  exit 1                                # Exit the script
+user=$SUDO_USER
+if [[ $EUID -ne 0 ]];then                # Check if the script is run by root privillege [8]
+  echo "You need to 'sudo' this script"  # Print an error message
+  exit 1                                 # Exit the script
 fi
-./install                               # Run setup script
-./link                                  # Run link script
+
+
+./install $user                          # Run setup script
+./link $user                             # Run link script
