@@ -22,6 +22,7 @@ This script installs packages listed in a `requirement` file.
 
 > [!IMPORTANT]
 > You need to create `requirement` in order to install packages
+
 **How to create a requirement file**
 ```bash
 touch requirement
@@ -62,6 +63,7 @@ Usage
 
 1. Create a file named requirement with a list of packages.
 2. Run the setup script.
+[alt_text](https://github.com/tony-nlc/2420-Assignment-2/tree/main/assets/install.png)
 3. Confirm installation when prompted by typing **Y** and pressing **Enter**.
 
 **Script 1.2: Creating Symbolic Links**
@@ -82,12 +84,15 @@ mkdir_handle() {
 
 # Step 1: Clone configuration files
 git init # Initialize a empty git repository
-git clone https://gitlab.com/cit2420/2420-as2-starting-files main # Get the files from a remote git repository
+git clone https://gitlab.com/cit2420/2420-as2-starting-files main 
+# Get the files from a remote git repository
 
 # Step 2: Create symbolic links for binaries
 mkdir_handle ~/bin # Handle if ~/bin already exist
-for file in ~/main/bin/*; do # Loop over the files under /bin of the remote git repository
+for file in ~/main/bin/*; do 
+# Loop over the files under /bin of the remote git repository
   ln -s "$file" ~/bin/$(basename "$file")
+  #
 done
 
 # Step 3: Create symbolic links for configuration files
@@ -114,10 +119,11 @@ Use the following script to run the setup and linking processes:
 Make the main script executable:
 
 ```bash
-sudo chmod u+x ./main
+sudo chmod u+x ./main # Add execute permission for user
+./main # Run the main script
 ```
+---
 
-Example Screenshot
 Installation Example
 Project 2: User Creation Script
 
