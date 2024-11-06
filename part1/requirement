@@ -1,0 +1,7 @@
+# Filename: requirement
+# Description: User-defined list of packages
+
+tmux
+kakoune
+unzip
+# Add more as needed

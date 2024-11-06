@@ -20,8 +20,8 @@ Script 1.1: Cloning Configuration & Installing Packages
 
 This script installs packages listed in a `requirement` file.
 
-[!IMPORTANT]
-You need to create `requirement` in order to install packages
+> [!IMPORTANT]
+> You need to create `requirement` in order to install packages
 **How to create a requirement file**
 ```bash
 touch requirement
