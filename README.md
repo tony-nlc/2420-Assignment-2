@@ -63,7 +63,7 @@ Usage
 
 1. Create a file named requirement with a list of packages.
 2. Run the setup script.
-[alt_text](https://github.com/tony-nlc/2420-Assignment-2/tree/main/assets/install.png)
+[alt_text](https://github.com/tony-nlc/2420-Assignment-2/blob/main/assets/install.png)
 3. Confirm installation when prompted by typing **Y** and pressing **Enter**.
 
 **Script 1.2: Creating Symbolic Links**
