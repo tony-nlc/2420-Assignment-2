@@ -2,43 +2,45 @@
 # Filename: link
 # Description: Link configuration and binary files to local directories
 # Reference:
-  # [3] https://ss64.com/bash/ln.html 
-  # [4] https://ss64.com/bash/basename.html 
-  # [5] https://git-scm.com/docs/git-init 
-  # [6] https://git-scm.com/docs/git-clone 
+# [3] https://ss64.com/bash/ln.html
+# [4] https://ss64.com/bash/basename.html
+# [5] https://git-scm.com/docs/git-init
+# [6] https://git-scm.com/docs/git-clone
 
-# Error Handling Function
+# Error Handling Function for mkdir
 mkdir_handle() {
-  if ! [[ -d $1 ]]; then 
+  if ! [[ -d $1 ]]; then
     # Check if directory does not exist [1]
     mkdir $1 # Create directory if it doesnt exist
   fi
 }
 
+# Error Handling Function for ln
 link() {
-  local source=$1
-  local destination=$2
-  if ! [[ -f $1 ]];then
-    ln -s $1 $2
+  local source=$1      # Create a local variable for source file
+  local destination=$2 # Create a local variable for destination link
+  if ! [[ -f $1 ]]; then
+    ln -s $1 $2 # -s option specifies it is a symbolic link
+
   else
     echo File Already Exist in Path:$2
-    exit 1
+  fi
 }
 
 # Step 1: Clone configuration files
-git init # Initialize a empty git repository [5]
-git clone https://gitlab.com/cit2420/2420-as2-starting-files main 
+git init
+# Initialize a empty git repository [5]
+git clone https://gitlab.com/cit2420/2420-as2-starting-files main
 # Get the files from a remote git repository [6]
 
 # Step 2: Create symbolic links for binaries
 mkdir_handle ~/bin # Handle if ~/bin already exist
-for file in ~/main/bin/*; do 
+for file in ~/main/bin/*; do
   # Loop over the files under /bin of the remote git repository
   echo "Linking $(basename $file)"
   # Print a message of what file we are handling
-  link -s "$file" ~/bin/$(basename "$file")
+  link "$file" ~/bin/$(basename "$file")
   # Create a symbolic link from the source file to the ~/bin files [3]
-  # -s option specifies it is a symbolic link
   # "$file" represents the absolute path of the source file
   # $(basename "$file") extracts the filename without the path [4]
   # The link will be created in ~/bin with the same name as the source file
@@ -47,19 +49,18 @@ done
 # Step 3: Create symbolic links for configuration files
 mkdir_handle ~/.config # Handle if ~/bin already exist
 for dir in ~/main/config/*; do
-  # Loop over application directory under config folder in remote git repository 
+  # Loop over application directory under config folder in remote git repository
   subdir_name=$(basename "$dir")
   echo "Looking up under $subdir_name"
   # Get the basename of the directory [4]
-  mkdir_handle "$HOME/.config/$subdir_name" 
+  mkdir_handle "$HOME/.config/$subdir_name"
   # Handle if ~/.config/<application> already exist
   for file in "$dir"/*; do
     # Loop over the file under the application directory
     echo "Linking $(basename $file)"
     # Print a message of what file we are handling
-    link -s "$file" "$HOME/.config/$subdir_name/$(basename "$file")"
+    link "$file" "$HOME/.config/$subdir_name/$(basename "$file")"
     # Create a symbolic link from the source file to the ~/.config/<application>/ config file [3]
-    # -s option specifies it is a symbolic link
     # "$file" represents the absolute path of the source file
     # $(basename "$file") extracts the filename without the path [4]
     # The link will be created in ~/bin with the same name as the source file
