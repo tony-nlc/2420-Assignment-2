@@ -6,42 +6,70 @@
   # [4] https://ss64.com/bash/basename.html 
   # [5] https://git-scm.com/docs/git-init 
   # [6] https://git-scm.com/docs/git-clone 
+  # [12] https://phoenixnap.com/kb/bash-comment
 
+################################################################################
+# Initiaiization                                                                         #
+################################################################################
+
+username=$1 
 # Set username
-username=$1
 
-# Error handling Function for mkdir
+################################################################################
+# Error Handling                                                               #
+################################################################################
+
+: << 'COMMENT'
+Error handling Function for mkdir
+Check if directory does not exist [1]
+Create directory if it doesnt exist
+COMMENT
+
 make_directory() {
   if ! [[ -d $1 ]]; then 
-    # Check if directory does not exist [1]
-    mkdir $1 # Create directory if it doesnt exist
+    mkdir $1 
   else
     echo Directory Already Exist in Path:$2
   fi
 }
 
+: << 'COMMENT'
+Error handling Function for ln
+Declare a local variable destination
+Check if the destination file does not exist
+Print a handling message
+Create a symbolic from source to destination
+Print an error message
+COMMENT
 
-# Error handling Function for ln
 link() {
-  local source=$1       # Declare a local variable source
-  local destination=$2  # Declare a local variable destination
-  if ! [[ -e $2 ]];then # Check if the destination file does not exist
-    echo "Linking $(basename $1) to $2" # Print a handling message
-    ln -s $1 $2         # Create a symbolic from source to destination
+  local source=$1
+  local destination=$2
+  if ! [[ -e $2 ]];then
+    echo "Linking $(basename $1) to $2" 
+    ln -s $1 $2
   else
-    echo File Already Exist in Path:$2 # Print an error message
+    echo File Already Exist in Path:$2 
   fi
 }
 
 
+
 # Step 1: Clone configuration files
-if ! [[ -d /home/$username/remote ]];then # Check if git remote directory does not exist
-  make_directory /home/$username/remote   # Create a new remote directory
-  cd /home/$username/remote               # Change directory to remote
-  git init                           # Initialize a empty git repository [5]
+: << 'COMMENT'
+Check if git remote directory does not exist
+Create a new remote directory
+Change directory to remote
+Initialize a empty git repository [5]
+Get the files from a remote git repository [6]
+Change directory back to /home/<username>
+COMMENT
+if ! [[ -d /home/$username/remote ]];then 
+  make_directory /home/$username/remote   
+  cd /home/$username/remote               
+  git init                           
   git clone https://gitlab.com/cit2420/2420-as2-starting-files main 
-  # Get the files from a remote git repository [6]
-  cd /home/$username                      # Change directory back to /home/<username>
+  cd /home/$username                     
 fi
 
 

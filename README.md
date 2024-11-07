@@ -275,13 +275,13 @@ fi
 
 uid=$(awk -F: '$3 >= 1000 && $3 <= 65533 { if ($3 > max) max = $3 } END { if (max >= 1000) print max+1; else print 1000 }' /etc/passwd)
 gid=$(awk -F: '$3 >= 1000 && $4 <= 65533 { if ($4 > max) max = $4 } END { if (max >= 1000) print max+1; else print 1000 }' /etc/passwd)
-
+user_home="/home/$username"
 user_entry="$username:x:$uid:$gid:$info:$user_home:$shell"
 echo "$user_entry" >> /etc/passwd
 echo "$username:!*::::::" >> /etc/shadow
 echo "$username:x:$gid:" >> /etc/group
 
-user_home="/home/$username"
+
 mkdir -p "$user_home"
 cp -r /etc/skel/. "$user_home"
 chown -R "$username:$gid" "$user_home"
