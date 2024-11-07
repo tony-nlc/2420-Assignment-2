@@ -64,19 +64,30 @@ unzip
   # [2] https://ss64.com/bash/syntax-substitution.html
 
 
-# Set the username
-username=$1
+################################################################################
+# Initiaiization                                                               #
+################################################################################
 
+username=$1 # Set the username
+filename=$2 # Set the requirement filename
+
+################################################################################
+# Main program                                                                 #
+################################################################################
 # Step 1: Install dependencies and packages
-if [[ -f /home/$username/requirement ]];then 
-  # Check if requirement exist
-  # -f checks if requirement is a regular file [1]
-  pacman -S --noconfirm $(cat /home/$username/requirement | tr "\r" " ") 
+
+# Check if requirement exist
+# -f checks if requirement is a regular file [1]
+if [[ -f /home/$username/$requirement ]];then 
   # Installs packages listed in the 'requirement' file
-  # $(cat requirement) will substitue the content of requirement [2]
+  # $(cat requirement) will substitue the content of given file [2]
+  # tr "\r" " " will replace all end of line to space
+  pacman -S --noconfirm $(cat /home/$username/$filename | tr "\r" " ") 
 else
-  echo You have not create a requirement file # Print an error message
-  exit 1                                      # Exit the script
+  # Print an error message
+  echo You have not create a requirement file 
+  # Exit the script
+  exit 1                                      
 fi
 ```
 

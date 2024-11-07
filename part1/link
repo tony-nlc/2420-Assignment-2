@@ -12,42 +12,39 @@
 # Initiaiization                                                               #
 ################################################################################
 
-username=$1 # Set username
+# Set username variable
+username=$1
 
 ################################################################################
 # Error Handling                                                               #
 ################################################################################
 
-: <<'COMMENT'
-Error handling Function for mkdir
-Check if directory does not exist [1]
-Create directory if it doesnt exist
-COMMENT
-
+# Error handling Function for mkdir
 make_directory() {
+  # Check if directory does not exist [1]
   if ! [[ -d $1 ]]; then
+    # Create directory if it doesnt exist
     mkdir $1
   else
+    # Print an error message
     echo Directory Already Exist in Path:$2
   fi
 }
 
-: <<'COMMENT'
-Error handling Function for ln
-Declare a local variable destination
-Check if the destination file does not exist
-Print a handling message
-Create a symbolic from source to destination
-Print an error message
-COMMENT
-
+# Error handling Function for ln
 link() {
+  # Declare a local source destination
   local source=$1
+  # Declare a local variable destination
   local destination=$2
+  # Check if the destination file does not exist
   if ! [[ -e $2 ]]; then
+    # Print a handling message
     echo "Linking $(basename $1) to $2"
+    # Create a symbolic from source to destination
     ln -s $1 $2
   else
+    # Print an error message
     echo File Already Exist in Path:$2
   fi
 }
@@ -58,72 +55,59 @@ link() {
 
 # Step 1: Clone configuration files
 
-: <<'COMMENT'
-Check if git remote directory does not exist
-Create a new remote directory
-Change directory to remote
-Initialize a empty git repository [5]
-Get the files from a remote git repository [6]
-Change directory back to /home/<username>
-COMMENT
-
+# Check if git remote directory does not exist
 if ! [[ -d /home/$username/remote ]]; then
+  # Create a new remote directory
   make_directory /home/$username/remote
+  # Change directory to remote
   cd /home/$username/remote
+  #Initialize a empty git repository [5]
   git init
+  # Get the files from a remote git repository [6]
   git clone https://gitlab.com/cit2420/2420-as2-starting-files main
+  # Change directory back to /home/<username>
   cd /home/$username
 fi
 
 # Step 2: Create symbolic links for binaries
 
-: <<'COMMENT'
 # Handle if ~/bin already exist
-Loop over the files under /bin of the remote git repository
-Create a symbolic link from the source file to the ~/bin files [3]
-"$file" represents the absolute path of the source file
-$(basename "$file") extracts the filename [4]
-The link will be created in /home/<username>/bin with the same name as the source file
-COMMENT
-
 make_directory /home/$username/bin
-
+# Loop over the files under /bin of the remote git repository
 for file in /home/$username/remote/main/bin/*; do
+  # Create a symbolic link from the source file to the ~/bin files [3]
+  # "$file" represents the absolute path of the source file
+  # $(basename "$file") extracts the filename [4]
+  # The link will be created in /home/<username>/bin with the same name as the source file
   link "$file" "/home/$username/bin/$(basename "$file")"
 done
 
 # Step 3: Create symbolic links for configuration files
 
-: <<'COMMENT'
-Handle if ~/.config already exist
-Loop over application directory under config folder in remote git repository 
-Get the basename of the directory [4]
-Print a lookup message
-Handle if ~/.config/<application> already exist
-Loop over the file under the application directory
-Create a symbolic link from the source file to the /home/arch/.config/<application>/ config file [3]
-"$file" represents the absolute path of the source file
-$(basename "$file") extracts the filename without the path [4]
-The link will be created in ~/bin with the same name as the source file
-COMMENT
-
+# Handle if ~/.config already exist
 make_directory /home/$username/.config
+# Install two packages needed
 pacman -S --noconfirm tmux kakoune
 
+# Loop over application directory under config folder in remote git repository 
 for dir in /home/$username/remote/main/config/*; do
+  # Get the basename of the directory [4]
   subdir_name=$(basename "$dir")
+  # Print a lookup message
   echo "Looking up under $subdir_name"
+  # Handle if ~/.config/<application> already exist
   make_directory "/home/$username/.config/$subdir_name"
+  # Loop over the file under the application directory
   for file in "$dir"/*; do
+    # Create a symbolic link from the source file to the /home/arch/.config/<application>/ config file [3]
+    # "$file" represents the absolute path of the source file
+    # $(basename "$file") extracts the filename without the path [4]
+    # The link will be created in ~/bin with the same name as the source file
     link "$file" "/home/$username/.config/$subdir_name/$(basename "$file")"
   done
 done
 
 # Step 4: Create symbolic links for bashrc file
 
-: <<'COMMENT'
-Create a symbolic link from the source file to the /home/arch/.bashc
-COMMENT
-
+# Create a symbolic link from the source file to the /home/arch/.bashc
 link /home/$username/remote/main/home/bashrc /home/$username/.bashrc
-

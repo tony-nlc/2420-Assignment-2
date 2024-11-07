@@ -17,9 +17,9 @@
 # Initiaiization                                                               #
 ################################################################################
 
-shell="bin/bash"
-group=()
-info="Regular User"
+shell="bin/bash"                          # Initialize a shell variable
+groups="wheel"                                 # Initialize an empty array for groups
+info="Regular User"                       # Initialize an default info for user
 
 ################################################################################
 # Error Handling                                                               #
@@ -47,23 +47,35 @@ show_help() {
 # Main program                                                                 #
 ################################################################################
 
+# Parsing option arguments to variable
 while getopts ":u:s:g:i:h" opt; do
   case "${opt}" in
+    # Passing $OPTARG to username variable
     u) username=$OPTARG ;;
+    # Passing $OPTARG to shell variable
     s) shell=$OPTARG ;;
+    # Passing $OPTARG to groups variable
     g) groups=$OPTARG ;; 
+    # Passing $OPTARG to info variable
     i) info=$OPTARG ;;
+    # Print help message
     h) show_help ;;
+    # Exit the function if they are missing an $OPTARG
     :) exit 1 ;;
+    # Exit the function if user pass in invalid option
     ?) exit 1 ;;
   esac
 done
 
-if [[ -z "$username" ]]; then
+# Check is username is empty
+if [[ -z "$username" ]]; then 
+    # Print an error message
     echo "Error: Username is required."
+    # Print help message
     show_help
 fi
 
+# Check if username already exists in /etc/passwd
 if [[ -n $(awk -F: -v username="$username" '$1 == username {print "String found in line:", $0}' /etc/passwd) ]]; then
     echo "Username found in file"
     exit 1
