@@ -23,7 +23,7 @@ if [[ $EUID -ne 0 ]]; then
   # Print an error message
   echo "You need to 'sudo' this script"
   # Exit the script
-  exit 1 
+  exit 1
 fi
 
 ################################################################################
@@ -48,14 +48,10 @@ while getopts ":r:u:h" opt; do
   r)
     # Assign OPTARG's value to requirement
     requirement=${OPTARG}
-    # Run  install script
-    ./install $user $requirement 
     ;;
   u)
     # Assign OPTARG's value to user variable
     user=${OPTARG}
-    # Run link script
-    ./link $user # Run link script
     ;;
   h)
     # Print help message
@@ -71,3 +67,8 @@ while getopts ":r:u:h" opt; do
     ;;
   esac
 done
+
+# Run  install script
+./install $user $requirement
+# Run link script
+./link $user # Run link script

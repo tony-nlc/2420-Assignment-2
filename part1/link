@@ -27,7 +27,7 @@ make_directory() {
     mkdir $1
   else
     # Print an error message
-    echo Directory Already Exist in Path:$2
+    echo Directory Already Exist in Path:$1
   fi
 }
 
