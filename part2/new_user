@@ -1,0 +1,78 @@
+#!/bin/bash
+# Filename: new_user
+# Description: Create a new user with the following:
+# Specify a shell
+# Create home directory
+# Clone /etc/skel
+# Group configuration
+# Setup password
+# Reference:
+#
+
+
+show_help() {
+    echo "Usage: $0 -u <username> -s <shell> -g <group1,group2,...> -i <User ID Info>"
+    echo "  -u <username>           Username of the new user (required)"
+    echo "  -s <shell>              User's shell (default: /bin/bash)"
+    echo "  -g <group>              Comma-separated list of additional groups"
+    echo "  -i <User ID Info>       Extra information about the user"
+    exit 0
+}
+
+shell="bin/bash"
+group=()
+info="Regular User"
+
+while getopts ":u:s:g:i:h" opt; do
+  case "${opt}" in
+    u) username=$OPTARG ;;
+    s) shell=$OPTARG ;;
+    g) groups=$OPTARG ;; 
+    i) info=$OPTARG ;;
+    h) show_help ;;
+    :) exit 1 ;;
+    ?) exit 1 ;;
+  esac
+done
+
+if [[ -z "$username" ]]; then
+    echo "Error: Username is required."
+    show_help
+fi
+
+if [[ -n $(awk -F: -v username="$username" '$1 == username {print "String found in line:", $0}' /etc/passwd) ]]; then
+    echo "Username found in file"
+    exit 1
+else
+    echo "Username not found in file"
+fi
+
+uid=$(awk -F: '$3 >= 1000 && $3 <= 65533 { if ($3 > max) max = $3 } END { if (max >= 1000) print max+1; else print 1000 }' /etc/passwd)
+gid=$(awk -F: '$3 >= 1000 && $4 <= 65533 { if ($4 > max) max = $4 } END { if (max >= 1000) print max+1; else print 1000 }' /etc/passwd)
+
+user_entry="$username:x:$uid:$gid:$info:$user_home:$shell"
+echo "$user_entry" >> /etc/passwd
+echo "$username:!*::::::" >> /etc/shadow
+echo "$username:x:$gid:" >> /etc/group
+
+user_home="/home/$username"
+mkdir -p "$user_home"
+cp -r /etc/skel/. "$user_home"
+chown -R "$username:$gid" "$user_home"
+
+groups=($(awk -F, '{for(i=1; i<=NF; i++) print $i}' <<< "$groups"))
+for ((i=0; i<${#groups[@]}; i++)); do
+
+    awk -F: -v group="${groups[i]}" -v user="$username" '
+    {
+    if ($1 == group) {
+        if ($4 != "") {
+            $4 = $4 "," user;
+        } else {
+            $4 = user;
+        }
+    }
+    print $0;
+    }' /etc/group > /etc/group.tmp && mv /etc/group.tmp /etc/group
+    echo "User $username added to group ${groups[i]}"
+done
