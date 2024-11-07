@@ -13,17 +13,13 @@
 # [13] https://www.cyberciti.biz/faq/understanding-etcpasswd-file-format/
 # [14] https://www.cyberciti.biz/faq/understanding-etcgroup-file/
 # [16] https://ss64.com/bash/awk.html
-# [17] https://stackoverflow.com/questions/39275121/awk-replace-string-in-line
-# [18] https://stackoverflow.com/questions/9708028/awk-return-value-to-shell-script
-# [19] https://stackoverflow.com/questions/70384448/how-should-i-use-if-else-statement-in-awk
-# [20] https://stackoverflow.com/questions/45948795/modifying-correct-group-name-and-id-within-etc-group-file
 
 ################################################################################
 # Initiaiization                                                               #
 ################################################################################
 
 # Initialize a default shell variable
-shell="bin/bash"
+shell="/bin/bash"
 # Initialize a default string for groups
 groups="wheel"
 # Initialize a default info for user
@@ -49,7 +45,7 @@ make_directory() {
     mkdir $1
   else
     # Print an error message
-    echo Directory Already Exist in Path:$2
+    echo Directory Already Exist in Path:$1
   fi
 }
 
@@ -100,10 +96,10 @@ if [[ -z "$username" ]]; then
 fi
 
 # Check if username already exists in /etc/passwd
-# awk -F: specifies to search and separate row by ":" [16]
-# -v username="$username" specifies username we are looking up [16]
-# $1 == username checks if first column is equal to username [19]
-# print "User Found" returns a message [18]
+# awk -F: specifies to search and separate row by ":"
+# -v username="$username" specifies username we are looking up
+# $1 == username checks if first column is equal to username
+# print "User Found", $0 returns a message
 # /etc/passwd is the file we are searching
 if [[ -n $(awk -F: -v username="$username" '$1 == username {print "Found"}' /etc/passwd) ]]; then
   # Print an error message showing username already exist
@@ -117,25 +113,25 @@ fi
 
 # Get the next avaliable UID
 # awk -F: specifies to search and separate row by ":"
-# $3 >= 1000 && $3 <= 65533 specifies the range we are looking for [17]
-# { if ($3 > max) max = $3 } Checks if third column UID column if larger than max a local variable [17]
-# END specifies by the end [16]
-# if (max >= 1000) checks if max >= 1000 [19]
-# if yes, return the value max+1 [17] [18]
-# if no, return 1000 [17] [18]
+# $3 >= 1000 && $3 <= 65533 specifies the range we are looking for
+# { if ($3 > max) max = $3 } Checks if third column UID column if larger than max a local variable
+# END specifies by the end
+# if (max >= 1000) checks if max >= 1000
+# if yes, return the value max+1
+# if no, return 1000
 # /etc/passwd specifies the value we are looking for
 uid=$(awk -F: '$3 >= 1000 && $3 <= 65533 { if ($3 > max) max = $3 } END { if (max >= 1000) print max+1; else print 1000 }' /etc/passwd)
 
 # Get the next avaliable GID
 # awk -F: specifies to search and separate row by ":"
-# $4 >= 1000 && $4 <= 65533 specifies the range we are looking for [17]
-# { if ($4 > max) max = $4 } Checks if fourth column UID column if larger than max a local variable [17]
+# $4 >= 1000 && $4 <= 65533 specifies the range we are looking for
+# { if ($4 > max) max = $4 } Checks if fourth column UID column if larger than max a local variable
 # END specifies by the end
-# if (max >= 1000) checks if max >= 1000 [19]
-# if yes, return the value max+1 [17] [18]
-# if no, return 1000 [17] [18]
+# if (max >= 1000) checks if max >= 1000
+# if yes, return the value max+1
+# if no, return 1000
 # /etc/passwd specifies the value we are looking for
-gid=$(awk -F: '$4 >= 1000 && $4 <= 65533 { if ($4 > max) max = $4 } END { if (max >= 1000) print max+1; else print 1000 }' /etc/passwd)
+gid=$(awk -F: '$3 >= 1000 && $4 <= 65533 { if ($4 > max) max = $4 } END { if (max >= 1000) print max+1; else print 1000 }' /etc/passwd)
 
 # Set a user_home variable
 user_home="/home/$username"
@@ -158,33 +154,45 @@ chown -R "$username:$gid" "$user_home"
 chmod -R 751 "$user_home"
 
 # Separate groups string into an array by comma
-groups=($(awk -F, '{for(i=1; i<=NF; i++) print $i}' <<<"$groups"))
+separated_groups=($(awk -F, '{for(i=1; i<=NF; i++) print $i}' <<<"$groups"))
 # Loop over group in groups
-for ((i = 0; i < ${#groups[@]}; i++)); do
-  # -F: specifies separate by ":" [16]
-  # -v group="${groups[i]}" sepcifies the group we are editing [16]
-  # -v user="$username" specifies the username as variable [16]
-  # if ($1 == group) checks if the first column of the row matches to the group [19]
-  # if ($4 != "") checks if the fourth column of the row is not empty [19]
-  # $4 = $4 "," user appends our username to column 4 [17]
-  # else $4 = user set the value of column 4 to user [17]
-  # print $0 returns a new row if changed else the original row [18]
-  # >/etc/group.tmp will write the result to /etc/group.tmp which temporary store the edited /etc/group
-  # && mv /etc/group.tmp /etc/group then rename /etc/group.tmp back to /etc/group [20]
-  # /etc/group is the file we are searching
-  awk -F: -v group="${groups[i]}" -v user="$username" '
+for ((i = 0; i < ${#separated_groups[@]}; i++)); do
+  # Check if group exists in /etc/group
+  # awk -F: specifies to search and separate row by ":"
+  # -v group="${separated_groups[i]}" specifies group name we are looking up
+  # $1 == username checks if first column is equal to groupname
+  # print "User Found", $0 returns a message
+  # /etc/passwd is the file we are searching
+  if [[ -n $(awk -F: -v group="${separated_groups[i]}" '$1 == group {print "Found"}' /etc/group) ]]; then
+    # specifies to search and separate row by ":"
+    # -F: specifies separate by ":"
+    # -v group="${groups[i]}" sepcifies the group we are editing
+    # -v user="$username" specifies the username as variable
+    # if ($1 == group) checks if the first column of the row matches to the group
+    # if ($4 != "") checks if the fourth column of the row is not empty
+    # $4 = $4 "," user appends our username to column 4
+    # else $4 = user set the value of column 4 to user
+    # print $0 returns a new row if changed else the original row
+    # >/etc/group.tmp will write the result to /etc/group.tmp which temporary store the edited /etc/group
+    # && mv /etc/group.tmp /etc/group then rename /etc/group.tmp back to /etc/group
+    # /etc/group is the file we are searching
+    awk -F: -v group="${separated_groups[i]}" -v user="$username" ' OFS=":"
     {
     if ($1 == group) {
         if ($4 != "") {
             $4 = $4 "," user;
+            print $0;
         } else {
             $4 = user;
+            print $0;
         }
     }
-    print $0;
     }' /etc/group >/etc/group.tmp && mv /etc/group.tmp /etc/group
-  # Print a success message
-  echo "User $username added to group ${groups[i]}"
+    Print a success message
+    echo "User $username added to group ${separated_groups[i]}"
+  else
+    echo "${separated_groups[i]} does not exist"
+  fi
 done
 
 # Change password for that user

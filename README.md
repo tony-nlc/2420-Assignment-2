@@ -70,7 +70,7 @@ unzip
 # Set a variable for username
 user=$SUDO_USER
 # Set a requirement variable default value as requirement
-requirement="requirement"
+file_path="/home/$user/requirement"
 
 ################################################################################
 # Error Handling                                                               #
@@ -90,8 +90,8 @@ fi
 
 # Show the usage of the script
 show_help() {
-  echo "Usage: $0 -r <filename> -u <username>"
-  echo "  -r <filename>           Filename of requirement file"
+  echo "Usage: $0 -r <filepath> -u <username>"
+  echo "  -r <filepath>           Filename of requirement file"
   echo "  -u <user>               User we are linking the config and bin"
   exit 0
 }
@@ -105,7 +105,7 @@ while getopts ":r:u:h" opt; do
   case "${opt}" in
   r)
     # Assign OPTARG's value to requirement
-    requirement=${OPTARG}
+    file_path=${OPTARG}
     ;;
   u)
     # Assign OPTARG's value to user variable
@@ -127,9 +127,9 @@ while getopts ":r:u:h" opt; do
 done
 
 # Run  install script
-./install $user $requirement
+./install $user $file_path
 # Run link script
-./link $user # Run link script
+./link $user
 ```
 
 #### Script 1.2: Creating Symbolic Links
@@ -338,15 +338,16 @@ done
 > Make the main script executable
 >
 > ```bash
-> sudo chmod u+x ./install # Add execute permission for user
-> sudo chmod u+x ./link # Add execute permission for user
-> sudo chmod u+x ./setup # Add execute permission for user
+> sudo chmod u+x ./install ./link ./setup # Add execute permission for user
 > ```
 
 Run the main script to set up your system.
 
 ```bash
-sudo ./setup -r # Run the setup script
+# Run the setup script for new user
+sudo ./setup -r <Packages File Path> -u <username> 
+# Or you can setup for your current user
+sudo ./setup 
 ```
 
 ---
@@ -535,19 +536,24 @@ for ((i = 0; i < ${#groups[@]}; i++)); do
   # >/etc/group.tmp will write the result to /etc/group.tmp which temporary store the edited /etc/group
   # && mv /etc/group.tmp /etc/group then rename /etc/group.tmp back to /etc/group
   # /etc/group is the file we are searching
-  awk -F: -v group="${groups[i]}" -v user="$username" '
-    {
-    if ($1 == group) {
-        if ($4 != "") {
-            $4 = $4 "," user;
-        } else {
-            $4 = user;
-        }
-    }
-    print $0;
-    }' /etc/group >/etc/group.tmp && mv /etc/group.tmp /etc/group
-  # Print a success message
-  echo "User $username added to group ${groups[i]}"
+  if [[ -n $(awk -F: -v group="${groups[i]}" '$1 == group {print "Found"}' /etc/group) ]]; then
+
+    awk -F: -v group="${groups[i]}" -v user="$username" '
+      {
+      if ($1 == group) {
+          if ($4 != "") {
+              $4 = $4 "," user;
+          } else {
+              $4 = user;
+          }
+      }
+      print $0;
+      }' /etc/group >/etc/group.tmp && mv /etc/group.tmp /etc/group
+    # Print a success message
+    echo "User $username added to group ${groups[i]}"
+  else
+    echo "${groups[i]} does not exist"
+  fi
 done
 
 # Change password for that user
