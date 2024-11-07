@@ -12,7 +12,7 @@
 # Set a variable for username
 user=$SUDO_USER
 # Set a requirement variable default value as requirement
-file_path="/home/$user/$requirement"
+file_path="/home/$user/requirement"
 
 ################################################################################
 # Error Handling                                                               #
