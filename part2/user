@@ -8,36 +8,85 @@
 # Setup password
 # Reference:
 # [10] https://www.cyberciti.biz/faq/understanding-etcpasswd-file-format/
+# [11] https://serverfault.com/questions/88868/bash-script-print-from-line-n-to-eof
+# [12] https://ss64.com/bash/nl.html
+# [13] https://ss64.com/bash/wc.html
+# [14] https://ss64.com/bash/nl.html
+# [15] https://ss64.com/bash/syntax-substitution.html
+# [16] https://ss64.com/bash/awk.html
+# [17] https://ss64.com/bash/read.html
 
-
-# Get current UID
-user=$UID
-
+# Get current UID of the sudo user
+uid=$(id -u $SUDO_USER)
+user=$SUDO_USER
 
 # Function to change the user's shell
 change_shell() {
+  number_of_line=$(wc -l </etc/shells)
+  # Calculate how many lines are in the /etc/shells file [13]
+  max_index=$(($number_of_line - 3))
 
+  # Print available shells starting from line 4 onward
+  nl -s ": " <(sed -n '4,$p' /etc/shells)
+  # sed -n '4,$p' will print from line 4 to the end of the file
+  # <(command) is process substitution, treating the output of a command as a file
+  # nl -s ": " adds an index as a prefix for each line [14]
+
+  read -p "Enter the index of the shell you want to use: " input
+  # Get the user-chosen index [17]
+
+  if [[ $input -lt 1 || $input -gt $max_index ]]; then
+    # Check if the index is within range
+    echo "Index needs to be between 1 and $max_index"
+    # Print an error message
+    exit 1
+    # Exit the function
+  fi
+
+  index=$(($input + 3))
+  # Calculate the actual index by adding 3 to adjust the line number
+
+  shell=$(sed -n "${index}p" /etc/shells)
+  # Get the shell path from the selected line
+
+  # Update the shell in /etc/passwd for the current user (requires root)
+  awk -F: -v shell="$shell" -v uid="$uid" '{if ($3 == uid) $7=shell} {print $0}' OFS=: /etc/passwd >/tmp/passwd && mv /tmp/passwd /etc/passwd
+  # awk allows us to find and replace the shell for the user with the given UID
+  # -F: specifies to separate the text by ":"
+  # -v <variable>="$<variable>" passes variables into awk
+  # {if ($3 == uid) $7=shell} replaces the shell for the user with matching UID
+  # OFS=: specifies to join the text with ":"
+  # /etc/passwd is the file containing user information
+  # > /tmp/passwd writes the modified output to a temporary file
+  # && mv /tmp/passwd /etc/passwd replaces the original /etc/passwd file
+  echo "Successfully updated shell for user $user"
 }
-
 
 # Function to change user's group
 change_group() {
-
+  # Placeholder for future implementation
+  echo "Function to change user group is not implemented yet."
 }
 
-while getopts ":s:g:" opt;do
+# Check if the script is run as root
+if [ "$(id -u)" -ne 0 ]; then
+  echo "This script must be run as root"
+  exit 1
+fi
+
+while getopts ":sg:" opt; do
   case "${opt}" in
-    s)
-      change_shell ${OPTARG}
-      ;;
-    g)
-      change_group ${OPTARG}
-      ;;
-    :)
-      echo "You need an argument for -$OPTARG option"
-      ;;
-    ?)
-      echo "Not a valid option"
-      ;;
-    esac
+  s)
+    change_shell
+    ;;
+  g)
+    change_group ${OPTARG}
+    ;;
+  :)
+    echo "You need an argument for -$OPTARG option"
+    ;;
+  ?)
+    echo "Invalid option"
+    ;;
+  esac
 done
