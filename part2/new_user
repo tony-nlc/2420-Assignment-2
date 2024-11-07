@@ -130,11 +130,21 @@ chown -R "$username:$gid" "$user_home"
 # Change access for user_home
 chmod -R 751 "$user_home"
 
-# Separating groups string into an array by comma
+# Separate groups string into an array by comma
 groups=($(awk -F, '{for(i=1; i<=NF; i++) print $i}' <<<"$groups"))
 # Loop over group in groups
 for ((i = 0; i < ${#groups[@]}; i++)); do
-  # Replacing
+  # Search over /etc/group
+  # -F: specifies separate by ":"
+  # -v group="${groups[i]}" sepcifies the group we are editing
+  # -v user="$username" specifies the username as variable
+  # if ($1 == group) checks if the first column of the row matches to the group
+  # if ($4 != "") checks if the fourth column of the row is not empty
+  # $4 = $4 "," user appends our username to column 4
+  # else $4 = user set the value of column 4 to user
+  # print $0 returns a new row if changed else the original row
+  # >/etc/group.tmp will write the result to /etc/group.tmp which temporary store the edited /etc/group
+  # && mv /etc/group.tmp /etc/group then rename /etc/group.tmp back to /etc/group
   awk -F: -v group="${groups[i]}" -v user="$username" '
     {
     if ($1 == group) {
@@ -146,7 +156,9 @@ for ((i = 0; i < ${#groups[@]}; i++)); do
     }
     print $0;
     }' /etc/group >/etc/group.tmp && mv /etc/group.tmp /etc/group
+  # Print a success message
   echo "User $username added to group ${groups[i]}"
 done
 
+# Change password for that user
 passwd $username
