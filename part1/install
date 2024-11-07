@@ -2,21 +2,34 @@
 # Filename: install
 # Description: Initialize Git and install user-defined packages
 # Reference:
-  # [1] https://ss64.com/bash/syntax-file-operators.html
-  # [2] https://ss64.com/bash/syntax-substitution.html
+# [1] https://ss64.com/bash/syntax-file-operators.html
+# [2] https://ss64.com/bash/syntax-substitution.html
 
+################################################################################
+# Initiaiization                                                               #
+################################################################################
 
-# Set the username
-username=$1
+username=$1 # Set the username
+filename=$2 # Set the requirement filename
 
+################################################################################
+# Main program                                                                 #
+################################################################################
 # Step 1: Install dependencies and packages
-if [[ -f /home/$username/requirement ]];then 
-  # Check if requirement exist
-  # -f checks if requirement is a regular file [1]
-  pacman -S --noconfirm $(cat /home/$username/requirement | tr "\r" " ") 
-  # Installs packages listed in the 'requirement' file
-  # $(cat requirement) will substitue the content of requirement [2]
+
+: <<'COMMENT'
+Check if requirement exist
+-f checks if requirement is a regular file [1]
+Installs packages listed in the 'requirement' file
+$(cat requirement) will substitue the content of requirement [2]
+Print an error message
+Exit the script
+COMMENT
+
+
+if [[ -f /home/$username/$filename ]]; then
+    pacman -S --noconfirm $(cat /home/$username/$filename | tr "\r" " ")
 else
-  echo You have not create a requirement file # Print an error message
-  exit 1                                      # Exit the script
+    echo "$filename doesn't exist"
+    exit 1
 fi

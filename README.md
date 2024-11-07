@@ -101,8 +101,8 @@ username=$1
 # Error handling Function for mkdir
 make_directory() {
   if ! [[ -d $1 ]]; then 
-    # Check if directory does not exist [1]
-    mkdir $1 # Create directory if it doesnt exist
+                                         # Check if directory does not exist [1]
+    mkdir $1                             # Create directory if it doesnt exist
   else
     echo Directory Already Exist in Path:$2
   fi
@@ -111,13 +111,13 @@ make_directory() {
 
 # Error handling Function for ln
 link() {
-  local source=$1       # Declare a local variable source
-  local destination=$2  # Declare a local variable destination
-  if ! [[ -e $2 ]];then # Check if the destination file does not exist
-    echo "Linking $(basename $1) to $2" # Print a handling message
-    ln -s $1 $2         # Create a symbolic from source to destination
+  local source=$1                        # Declare a local variable source
+  local destination=$2                   # Declare a local variable destination
+  if ! [[ -e $2 ]];then                  # Check if the destination file does not exist
+    echo "Linking $(basename $1) to $2"  # Print a handling message
+    ln -s $1 $2                          # Create a symbolic from source to destination
   else
-    echo File Already Exist in Path:$2 # Print an error message
+    echo File Already Exist in Path:$2   # Print an error message
   fi
 }
 

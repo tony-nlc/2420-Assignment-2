@@ -2,38 +2,37 @@
 # Filename: link
 # Description: Link configuration and binary files to local directories
 # Reference:
-  # [3] https://ss64.com/bash/ln.html 
-  # [4] https://ss64.com/bash/basename.html 
-  # [5] https://git-scm.com/docs/git-init 
-  # [6] https://git-scm.com/docs/git-clone 
-  # [12] https://phoenixnap.com/kb/bash-comment
+# [3] https://ss64.com/bash/ln.html
+# [4] https://ss64.com/bash/basename.html
+# [5] https://git-scm.com/docs/git-init
+# [6] https://git-scm.com/docs/git-clone
+# [12] https://phoenixnap.com/kb/bash-comment
 
 ################################################################################
-# Initiaiization                                                                         #
+# Initiaiization                                                               #
 ################################################################################
 
-username=$1 
-# Set username
+username=$1 # Set username
 
 ################################################################################
 # Error Handling                                                               #
 ################################################################################
 
-: << 'COMMENT'
+: <<'COMMENT'
 Error handling Function for mkdir
 Check if directory does not exist [1]
 Create directory if it doesnt exist
 COMMENT
 
 make_directory() {
-  if ! [[ -d $1 ]]; then 
-    mkdir $1 
+  if ! [[ -d $1 ]]; then
+    mkdir $1
   else
     echo Directory Already Exist in Path:$2
   fi
 }
 
-: << 'COMMENT'
+: <<'COMMENT'
 Error handling Function for ln
 Declare a local variable destination
 Check if the destination file does not exist
@@ -45,18 +44,21 @@ COMMENT
 link() {
   local source=$1
   local destination=$2
-  if ! [[ -e $2 ]];then
-    echo "Linking $(basename $1) to $2" 
+  if ! [[ -e $2 ]]; then
+    echo "Linking $(basename $1) to $2"
     ln -s $1 $2
   else
-    echo File Already Exist in Path:$2 
+    echo File Already Exist in Path:$2
   fi
 }
 
-
+################################################################################
+# Main program                                                                 #
+################################################################################
 
 # Step 1: Clone configuration files
-: << 'COMMENT'
+
+: <<'COMMENT'
 Check if git remote directory does not exist
 Create a new remote directory
 Change directory to remote
@@ -64,47 +66,64 @@ Initialize a empty git repository [5]
 Get the files from a remote git repository [6]
 Change directory back to /home/<username>
 COMMENT
-if ! [[ -d /home/$username/remote ]];then 
-  make_directory /home/$username/remote   
-  cd /home/$username/remote               
-  git init                           
-  git clone https://gitlab.com/cit2420/2420-as2-starting-files main 
-  cd /home/$username                     
+
+if ! [[ -d /home/$username/remote ]]; then
+  make_directory /home/$username/remote
+  cd /home/$username/remote
+  git init
+  git clone https://gitlab.com/cit2420/2420-as2-starting-files main
+  cd /home/$username
 fi
 
-
 # Step 2: Create symbolic links for binaries
-make_directory /home/$username/bin # Handle if ~/bin already exist
 
-for file in /home/$username/remote/main/bin/*; do 
-  # Loop over the files under /bin of the remote git repository
+: <<'COMMENT'
+# Handle if ~/bin already exist
+Loop over the files under /bin of the remote git repository
+Create a symbolic link from the source file to the ~/bin files [3]
+"$file" represents the absolute path of the source file
+$(basename "$file") extracts the filename [4]
+The link will be created in /home/<username>/bin with the same name as the source file
+COMMENT
+
+make_directory /home/$username/bin
+
+for file in /home/$username/remote/main/bin/*; do
   link "$file" "/home/$username/bin/$(basename "$file")"
-  # Create a symbolic link from the source file to the ~/bin files [3]
-  # "$file" represents the absolute path of the source file
-  # $(basename "$file") extracts the filename [4]
-  # The link will be created in /home/<username>/bin with the same name as the source file
 done
 
-
 # Step 3: Create symbolic links for configuration files
-make_directory /home/$username/.config # Handle if ~/bin already exist
+
+: <<'COMMENT'
+Handle if ~/.config already exist
+Loop over application directory under config folder in remote git repository 
+Get the basename of the directory [4]
+Print a lookup message
+Handle if ~/.config/<application> already exist
+Loop over the file under the application directory
+Create a symbolic link from the source file to the /home/arch/.config/<application>/ config file [3]
+"$file" represents the absolute path of the source file
+$(basename "$file") extracts the filename without the path [4]
+The link will be created in ~/bin with the same name as the source file
+COMMENT
+
+make_directory /home/$username/.config
 pacman -S --noconfirm tmux kakoune
 
 for dir in /home/$username/remote/main/config/*; do
-  # Loop over application directory under config folder in remote git repository 
-  subdir_name=$(basename "$dir")                    # Get the basename of the application [4]
-  echo "Looking up under $subdir_name"              # Get the basename of the directory [4]
-  make_directory "/home/$username/.config/$subdir_name"  # Handle if ~/.config/<application> already exist
-  for file in "$dir"/*; do                          # Loop over the file under the application directory
+  subdir_name=$(basename "$dir")
+  echo "Looking up under $subdir_name"
+  make_directory "/home/$username/.config/$subdir_name"
+  for file in "$dir"/*; do
     link "$file" "/home/$username/.config/$subdir_name/$(basename "$file")"
-    # Create a symbolic link from the source file to the /home/arch/.config/<application>/ config file [3]
-    # "$file" represents the absolute path of the source file
-    # $(basename "$file") extracts the filename without the path [4]
-    # The link will be created in ~/bin with the same name as the source file
   done
 done
 
-
 # Step 4: Create symbolic links for bashrc file
+
+: <<'COMMENT'
+Create a symbolic link from the source file to the /home/arch/.bashc
+COMMENT
+
 link /home/$username/remote/main/home/bashrc /home/$username/.bashrc
-# Create a symbolic link from the source file to the /home/arch/.bashc
+

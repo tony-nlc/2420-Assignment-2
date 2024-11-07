@@ -1,14 +1,29 @@
 #!/bin/bash
 # Filename: new_user
 # Description: Create a new user with the following:
-# Specify a shell
-# Create home directory
-# Clone /etc/skel
-# Group configuration
-# Setup password
+# - Specify a shell
+# - Create home directory
+# - Clone /etc/skel
+# - Group configuration
+# - Setup password
 # Reference:
 # [10] https://unix.stackexchange.com/questions/153225/what-steps-to-add-a-user-to-a-system-without-using-useradd-adduser
 # [11] https://opensource.com/article/19/12/help-bash-program
+# [12] https://ss64.com/bash/getopts.html
+# [13] https://www.cyberciti.biz/faq/understanding-etcpasswd-file-format/
+# [14] https://www.cyberciti.biz/faq/understanding-etcgroup-file/
+
+################################################################################
+# Initiaiization                                                               #
+################################################################################
+
+shell="bin/bash"
+group=()
+info="Regular User"
+
+################################################################################
+# Error Handling                                                               #
+################################################################################
 
 if [[ $EUID -ne 0 ]];then                # Check if the script is run by root privillege [8]
   echo "You need to 'sudo' this script"  # Print an error message
@@ -18,6 +33,7 @@ fi
 ################################################################################
 # Help                                                                         #
 ################################################################################
+
 show_help() {
     echo "Usage: $0 -u <username> -s <shell> -g <group1,group2,...> -i <User ID Info>"
     echo "  -u <username>           Username of the new user (required)"
@@ -26,11 +42,10 @@ show_help() {
     echo "  -i <User ID Info>       Extra information about the user"
     exit 0
 }
-# Function display what options it 
 
-shell="bin/bash"
-group=()
-info="Regular User"
+################################################################################
+# Main program                                                                 #
+################################################################################
 
 while getopts ":u:s:g:i:h" opt; do
   case "${opt}" in

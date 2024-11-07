@@ -8,18 +8,56 @@
 ################################################################################
 # Initiaiization                                                               #
 ################################################################################
+
 user=$SUDO_USER                          # Set a user variable for username
+requirement="requirement"
 
 ################################################################################
 # Error Handling                                                               #
 ################################################################################
+
 if [[ $EUID -ne 0 ]];then                # Check if the script is run by root privillege [8]
   echo "You need to 'sudo' this script"  # Print an error message
   exit 1                                 # Exit the script
 fi
 
 ################################################################################
+# Help                                                                         #
+################################################################################
+
+show_help() {
+    echo "Usage: $0 -r <filename> -u <username>"
+    echo "  -r <filename>           Filename of requirement file"
+    echo "  -u <user>               User we are linking the config and bin"
+    exit 0
+}
+
+################################################################################
 # Main program                                                                 #
 ################################################################################
-./install $user                          # Run setup script
-./link $user                             # Run link script
+
+while getopts ":r:u:" opt; do
+  case "${opt}" in
+    r)
+      if [[ -n $OPTARG ]];then
+        requirement=${OPTARG}
+      fi
+      ./install $user $requirement          # Run the install script
+      ;;
+    u)
+      if [[ -n $OPTARG ]];then
+        user=${OPTARG}
+      fi
+      ./link $user                             # Run link script
+      ;;
+    h)
+      show_help
+      ;;
+    :)
+      exit 1
+      ;;
+    ?)
+      exit 1
+      ;;
+  esac
+done
