@@ -13,7 +13,7 @@
 # Set the username
 username=$1
 # Set the requirement filename
-filename=$2
+file_path=$2
 
 ################################################################################
 # Main program                                                                 #
@@ -22,11 +22,11 @@ filename=$2
 
 # Check if requirement exist
 # -f checks if requirement is a regular file [1]
-if [[ -f /home/$username/$filename ]]; then
+if [[ -f $file_path ]]; then
     # Installs packages listed in the 'requirement' file
     # $(cat requirement) will substitue the content of given file [2]
     # tr "\r" " " will replace all end of line to space
-    pacman -S --noconfirm $(cat /home/$username/$filename | tr "\r" " ")
+    pacman -S --noconfirm $(cat $file_path | tr "\r" " ")
 else
     # Print an error message
     echo You have not create a requirement file

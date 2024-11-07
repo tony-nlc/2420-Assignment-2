@@ -272,7 +272,7 @@ Use the following script to run the setup and linking processes:
 # Set a variable for username
 user=$SUDO_USER
 # Set a requirement variable default value as requirement
-requirement="requirement"
+filename="/home/$user/$requirement"
 
 ################################################################################
 # Error Handling                                                               #
@@ -293,7 +293,7 @@ fi
 # Show the usage of the script
 show_help() {
   echo "Usage: $0 -r <filename> -u <username>"
-  echo "  -r <filename>           Filename of requirement file"
+  echo "  -r <filename>           File path of file"
   echo "  -u <user>               User we are linking the config and bin"
   exit 0
 }
@@ -307,7 +307,7 @@ while getopts ":r:u:h" opt; do
   case "${opt}" in
   r)
     # Assign OPTARG's value to requirement
-    requirement=${OPTARG}
+    filename=${OPTARG}
     ;;
   u)
     # Assign OPTARG's value to user variable
@@ -329,7 +329,7 @@ while getopts ":r:u:h" opt; do
 done
 
 # Run  install script
-./install $user $requirement
+./install $user $filename
 # Run link script
 ./link $user # Run link script
 ```
@@ -346,7 +346,7 @@ done
 Run the main script to set up your system.
 
 ```bash
-sudo ./setup # Run the setup script
+sudo ./setup -r # Run the setup script
 ```
 
 ---
@@ -378,6 +378,7 @@ These scripts provide a fast way to configure a new user by configuring user's g
 # [12] https://ss64.com/bash/getopts.html
 # [13] https://www.cyberciti.biz/faq/understanding-etcpasswd-file-format/
 # [14] https://www.cyberciti.biz/faq/understanding-etcgroup-file/
+# [16] https://ss64.com/bash/awk.html
 
 ################################################################################
 # Initiaiization                                                               #
@@ -461,7 +462,12 @@ if [[ -z "$username" ]]; then
 fi
 
 # Check if username already exists in /etc/passwd
-if [[ -n $(awk -F: -v username="$username" '$1 == username {print "String found in line:", $0}' /etc/passwd) ]]; then
+# awk -F: specifies to search and separate row by ":"
+# -v username="$username" specifies username we are looking up
+# $1 == username checks if first column is equal to username
+# print "User Found", $0 returns a message
+# /etc/passwd is the file we are searching
+if [[ -n $(awk -F: -v username="$username" '$1 == username {print "Found"}' /etc/passwd) ]]; then
   # Print an error message showing username already exist
   echo "Username found in file"
   # Exit script
@@ -472,8 +478,25 @@ else
 fi
 
 # Get the next avaliable UID
+# awk -F: specifies to search and separate row by ":"
+# $3 >= 1000 && $3 <= 65533 specifies the range we are looking for
+# { if ($3 > max) max = $3 } Checks if third column UID column if larger than max a local variable
+# END specifies by the end
+# if (max >= 1000) checks if max >= 1000
+# if yes, return the value max+1
+# if no, return 1000
+# /etc/passwd specifies the value we are looking for
 uid=$(awk -F: '$3 >= 1000 && $3 <= 65533 { if ($3 > max) max = $3 } END { if (max >= 1000) print max+1; else print 1000 }' /etc/passwd)
+
 # Get the next avaliable GID
+# awk -F: specifies to search and separate row by ":"
+# $4 >= 1000 && $4 <= 65533 specifies the range we are looking for
+# { if ($4 > max) max = $4 } Checks if fourth column UID column if larger than max a local variable
+# END specifies by the end
+# if (max >= 1000) checks if max >= 1000
+# if yes, return the value max+1
+# if no, return 1000
+# /etc/passwd specifies the value we are looking for
 gid=$(awk -F: '$3 >= 1000 && $4 <= 65533 { if ($4 > max) max = $4 } END { if (max >= 1000) print max+1; else print 1000 }' /etc/passwd)
 
 # Set a user_home variable
@@ -500,7 +523,7 @@ chmod -R 751 "$user_home"
 groups=($(awk -F, '{for(i=1; i<=NF; i++) print $i}' <<<"$groups"))
 # Loop over group in groups
 for ((i = 0; i < ${#groups[@]}; i++)); do
-  # Search over /etc/group
+  # specifies to search and separate row by ":"
   # -F: specifies separate by ":"
   # -v group="${groups[i]}" sepcifies the group we are editing
   # -v user="$username" specifies the username as variable
@@ -511,6 +534,7 @@ for ((i = 0; i < ${#groups[@]}; i++)); do
   # print $0 returns a new row if changed else the original row
   # >/etc/group.tmp will write the result to /etc/group.tmp which temporary store the edited /etc/group
   # && mv /etc/group.tmp /etc/group then rename /etc/group.tmp back to /etc/group
+  # /etc/group is the file we are searching
   awk -F: -v group="${groups[i]}" -v user="$username" '
     {
     if ($1 == group) {

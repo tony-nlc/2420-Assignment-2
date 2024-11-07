@@ -12,7 +12,7 @@
 # Set a variable for username
 user=$SUDO_USER
 # Set a requirement variable default value as requirement
-requirement="requirement"
+file_path="/home/$user/$requirement"
 
 ################################################################################
 # Error Handling                                                               #
@@ -47,7 +47,7 @@ while getopts ":r:u:h" opt; do
   case "${opt}" in
   r)
     # Assign OPTARG's value to requirement
-    requirement=${OPTARG}
+    file_path=${OPTARG}
     ;;
   u)
     # Assign OPTARG's value to user variable
@@ -69,6 +69,6 @@ while getopts ":r:u:h" opt; do
 done
 
 # Run  install script
-./install $user $requirement
+./install $user $file_path
 # Run link script
-./link $user # Run link script
+./link $user
