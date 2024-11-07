@@ -1,63 +1,73 @@
 #!/bin/bash
 # Filename: setup
 # Description: Run setup and link scripts
-# Reference: 
-# [8] https://ss64.com/bash/ps.html 
+# Reference:
+# [8] https://ss64.com/bash/ps.html
 # [9] https://ss64.com/bash/sudo.html
 
 ################################################################################
 # Initiaiization                                                               #
 ################################################################################
 
-user=$SUDO_USER                          # Set a user variable for username
+# Set a variable for username
+user=$SUDO_USER
+# Set a requirement variable default value as requirement
 requirement="requirement"
 
 ################################################################################
 # Error Handling                                                               #
 ################################################################################
 
-if [[ $EUID -ne 0 ]];then                # Check if the script is run by root privillege [8]
-  echo "You need to 'sudo' this script"  # Print an error message
-  exit 1                                 # Exit the script
+# Check if the script is run by root privillege [8]
+if [[ $EUID -ne 0 ]]; then
+  # Print an error message
+  echo "You need to 'sudo' this script"
+  # Exit the script
+  exit 1 
 fi
 
 ################################################################################
 # Help                                                                         #
 ################################################################################
 
+# Show the usage of the script
 show_help() {
-    echo "Usage: $0 -r <filename> -u <username>"
-    echo "  -r <filename>           Filename of requirement file"
-    echo "  -u <user>               User we are linking the config and bin"
-    exit 0
+  echo "Usage: $0 -r <filename> -u <username>"
+  echo "  -r <filename>           Filename of requirement file"
+  echo "  -u <user>               User we are linking the config and bin"
+  exit 0
 }
 
 ################################################################################
 # Main program                                                                 #
 ################################################################################
 
-while getopts ":r:u:" opt; do
+# Parsing argument into variable
+while getopts ":r:u:h" opt; do
   case "${opt}" in
-    r)
-      if [[ -n $OPTARG ]];then
-        requirement=${OPTARG}
-      fi
-      ./install $user $requirement          # Run the install script
-      ;;
-    u)
-      if [[ -n $OPTARG ]];then
-        user=${OPTARG}
-      fi
-      ./link $user                             # Run link script
-      ;;
-    h)
-      show_help
-      ;;
-    :)
-      exit 1
-      ;;
-    ?)
-      exit 1
-      ;;
+  r)
+    # Assign OPTARG's value to requirement
+    requirement=${OPTARG}
+    # Run  install script
+    ./install $user $requirement 
+    ;;
+  u)
+    # Assign OPTARG's value to user variable
+    user=${OPTARG}
+    # Run link script
+    ./link $user # Run link script
+    ;;
+  h)
+    # Print help message
+    show_help
+    ;;
+  :)
+    # Exit script if OPTARGV is missing
+    exit 1
+    ;;
+  ?)
+    # Exit script for invalid option
+    exit 1
+    ;;
   esac
 done

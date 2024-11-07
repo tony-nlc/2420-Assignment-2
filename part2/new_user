@@ -17,30 +17,49 @@
 # Initiaiization                                                               #
 ################################################################################
 
-shell="bin/bash"                          # Initialize a shell variable
-groups="wheel"                                 # Initialize an empty array for groups
-info="Regular User"                       # Initialize an default info for user
+# Initialize a default shell variable
+shell="bin/bash"
+# Initialize a default string for groups
+groups="wheel"
+# Initialize a default info for user
+info="Regular User"
 
 ################################################################################
 # Error Handling                                                               #
 ################################################################################
 
-if [[ $EUID -ne 0 ]];then                # Check if the script is run by root privillege [8]
-  echo "You need to 'sudo' this script"  # Print an error message
-  exit 1                                 # Exit the script
+# Check if the script is run by root privillege [8]
+if [[ $EUID -ne 0 ]]; then
+  # Print an error message
+  echo "You need to 'sudo' this script"
+  # Exit the script
+  exit 1
 fi
+
+# Error handling Function for mkdir
+make_directory() {
+  # Check if directory does not exist [1]
+  if ! [[ -d $1 ]]; then
+    # Create directory if it doesnt exist
+    mkdir $1
+  else
+    # Print an error message
+    echo Directory Already Exist in Path:$2
+  fi
+}
 
 ################################################################################
 # Help                                                                         #
 ################################################################################
 
+# Show the usage of the script
 show_help() {
-    echo "Usage: $0 -u <username> -s <shell> -g <group1,group2,...> -i <User ID Info>"
-    echo "  -u <username>           Username of the new user (required)"
-    echo "  -s <shell>              User's shell (default: /bin/bash)"
-    echo "  -g <group>              Comma-separated list of additional groups"
-    echo "  -i <User ID Info>       Extra information about the user"
-    exit 0
+  echo "Usage: $0 -u <username> -s <shell> -g <group1,group2,...> -i <User ID Info>"
+  echo "  -u <username>           Username of the new user (required)"
+  echo "  -s <shell>              User's shell (default: /bin/bash)"
+  echo "  -g <group>              Comma-separated list of additional groups"
+  echo "  -i <User ID Info>       Extra information about the user"
+  exit 0
 }
 
 ################################################################################
@@ -50,57 +69,73 @@ show_help() {
 # Parsing option arguments to variable
 while getopts ":u:s:g:i:h" opt; do
   case "${opt}" in
-    # Passing $OPTARG to username variable
-    u) username=$OPTARG ;;
-    # Passing $OPTARG to shell variable
-    s) shell=$OPTARG ;;
-    # Passing $OPTARG to groups variable
-    g) groups=$OPTARG ;; 
-    # Passing $OPTARG to info variable
-    i) info=$OPTARG ;;
-    # Print help message
-    h) show_help ;;
-    # Exit the function if they are missing an $OPTARG
-    :) exit 1 ;;
-    # Exit the function if user pass in invalid option
-    ?) exit 1 ;;
+  # Passing $OPTARG to username variable
+  u) username=$OPTARG ;;
+  # Passing $OPTARG to shell variable
+  s) shell=$OPTARG ;;
+  # Passing $OPTARG to groups variable
+  g) groups=$OPTARG ;;
+  # Passing $OPTARG to info variable
+  i) info=$OPTARG ;;
+  # Print help message
+  h) show_help ;;
+  # Exit the function if they are missing an $OPTARG
+  :) exit 1 ;;
+  # Exit the function if user pass in invalid option
+  ?) exit 1 ;;
   esac
 done
 
 # Check is username is empty
-if [[ -z "$username" ]]; then 
-    # Print an error message
-    echo "Error: Username is required."
-    # Print help message
-    show_help
+if [[ -z "$username" ]]; then
+  # Print an error message
+  echo "Error: Username is required."
+  # Print help message
+  show_help
 fi
 
 # Check if username already exists in /etc/passwd
 if [[ -n $(awk -F: -v username="$username" '$1 == username {print "String found in line:", $0}' /etc/passwd) ]]; then
-    echo "Username found in file"
-    exit 1
+  # Print an error message showing username already exist
+  echo "Username found in file"
+  # Exit script
+  exit 1
 else
-    echo "Valid Username"
+  # Print a success message
+  echo "Valid Username"
 fi
 
+# Get the next avaliable UID
 uid=$(awk -F: '$3 >= 1000 && $3 <= 65533 { if ($3 > max) max = $3 } END { if (max >= 1000) print max+1; else print 1000 }' /etc/passwd)
+# Get the next avaliable GID
 gid=$(awk -F: '$3 >= 1000 && $4 <= 65533 { if ($4 > max) max = $4 } END { if (max >= 1000) print max+1; else print 1000 }' /etc/passwd)
+
+# Set a user_home variable
 user_home="/home/$username"
+# Set a user_entry for /etc/passwd
 user_entry="$username:x:$uid:$gid:$info:$user_home:$shell"
-echo "$user_entry" >> /etc/passwd 
-echo "$username:!*::::::" >> /etc/shadow
-echo "$username:x:$gid:" >> /etc/group
+# Append user_entry variable to /etc/passwd
+echo "$user_entry" >>/etc/passwd
+# Append user_entry variable to /etc/shadow
+echo "$username:!*::::::" >>/etc/shadow
+# Append user_entry variable to /etc/group
+echo "$username:x:$gid:" >>/etc/group
 
-
-mkdir -p "$user_home"
+# Handle if user_home already exist
+make_directory "$user_home"
+# Copy skeleteon to user_home recursively
 cp -r /etc/skel/. "$user_home"
+# Change ownership of user_home to user
 chown -R "$username:$gid" "$user_home"
+# Change access for user_home
 chmod -R 751 "$user_home"
 
-groups=($(awk -F, '{for(i=1; i<=NF; i++) print $i}' <<< "$groups"))
-for ((i=0; i<${#groups[@]}; i++)); do
-
-    awk -F: -v group="${groups[i]}" -v user="$username" '
+# Separating groups string into an array by comma
+groups=($(awk -F, '{for(i=1; i<=NF; i++) print $i}' <<<"$groups"))
+# Loop over group in groups
+for ((i = 0; i < ${#groups[@]}; i++)); do
+  # Replacing
+  awk -F: -v group="${groups[i]}" -v user="$username" '
     {
     if ($1 == group) {
         if ($4 != "") {
@@ -110,8 +145,8 @@ for ((i=0; i<${#groups[@]}; i++)); do
         }
     }
     print $0;
-    }' /etc/group > /etc/group.tmp && mv /etc/group.tmp /etc/group
-    echo "User $username added to group ${groups[i]}"
+    }' /etc/group >/etc/group.tmp && mv /etc/group.tmp /etc/group
+  echo "User $username added to group ${groups[i]}"
 done
 
 passwd $username
