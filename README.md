@@ -184,6 +184,7 @@ if ! [[ -d /home/$username/remote ]]; then
   git clone https://gitlab.com/cit2420/2420-as2-starting-files main
   # Change directory back to /home/<username>
   cd /home/$username
+  echo
 else
   # Print an error message
   echo Remote Git Repository Already exists
@@ -359,7 +360,8 @@ echo
 > [!IMPORTANT]
 > Make The Three Scripts Executable
 > ```bash
-> sudo chmod u+x ./install ./link ./setup # Add execute permission for user
+> # Add execute permission for user
+> sudo chmod u+x ./install ./link ./setup 
 > ```
 
 Run the setup script to set up your system.
@@ -548,7 +550,7 @@ echo "$username:x:$gid:" >>/etc/group
 # Handle if user_home already exist
 make_directory "$user_home"
 # Copy skeleteon to user_home recursively [10]
-cp -r /etc/skel "$user_home"
+cp -r /etc/skel/* "$user_home"
 # Change ownership of user_home to user
 chown -R "$username:$gid" "$user_home"
 # Change access for user_home

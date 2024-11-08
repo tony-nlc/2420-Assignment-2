@@ -71,6 +71,7 @@ if ! [[ -d /home/$username/remote ]]; then
   git clone https://gitlab.com/cit2420/2420-as2-starting-files main
   # Change directory back to /home/<username>
   cd /home/$username
+  echo
 else
   # Print an error message
   echo Remote Git Repository Already exists
