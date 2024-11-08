@@ -87,9 +87,16 @@ while getopts ":u:s:g:i:h" opt; do
   # Print help message
   h) show_help ;;
   # Exit the function if they are missing an $OPTARG
-  :) exit 1 ;;
+  :)
+    # Print An Error Message
+    echo "Option Need A Argument"
+    exit 1 
+    ;;
   # Exit the function if user pass in invalid option
-  ?) exit 1 ;;
+  ?) 
+    # Print An Error Message
+    echo "Not A Valid Option"
+    exit 1 ;;
   esac
 done
 
