@@ -262,6 +262,9 @@ echo /home/$username/.bashrc
 # Print a separate line
 printf "%60s" " " | tr ' ' '-'
 echo
+
+# Remove the existing .bashrc
+rm /home/$username/.bashrc
 # Create a symbolic link from the source file to the /home/arch/.bashc
 link /home/$username/remote/main/home/bashrc /home/$username/.bashrc
 ```
@@ -334,10 +337,14 @@ while getopts ":r:u:h" opt; do
     show_help
     ;;
   :)
+    # Print Error Message
+    echo Option Need A Argument
     # Exit script if OPTARGV is missing
     exit 1
     ;;
   ?)
+    # Print Error Message
+    echo Invalid Option
     # Exit script for invalid option
     exit 1
     ;;
@@ -489,10 +496,18 @@ while getopts ":u:s:g:i:h" opt; do
   i) info=$OPTARG ;;
   # Print help message
   h) show_help ;;
-  # Exit the function if they are missing an $OPTARG
-  :) exit 1 ;;
-  # Exit the function if user pass in invalid option
-  ?) exit 1 ;;
+  :)
+    # Print An Error Message
+    echo "Option Need A Argument"
+    # Exit the function if they are missing an $OPTARG
+    exit 1 
+    ;;
+  ?) 
+    # Print An Error Message
+    echo "Not A Valid Option"
+    # Exit the function if user pass in invalid option
+    exit 1 
+    ;;
   esac
 done
 

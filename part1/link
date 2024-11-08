@@ -149,6 +149,8 @@ echo /home/$username/.bashrc
 # Print a separate line
 printf "%60s" " " | tr ' ' '-'
 echo
-# Create a symbolic link from the source file to the /home/arch/.bashc
+
+# Remove the existing .bashrc
 rm /home/$username/.bashrc
+# Create a symbolic link from the source file to the /home/arch/.bashc
 link /home/$username/remote/main/home/bashrc /home/$username/.bashrc
