@@ -61,6 +61,8 @@ pacman -S --noconfirm --needed tmux kakoune
 echo
 
 echo Clone Remote Git Repository
+printf "%60s" " " | tr ' ' '-'
+echo
 # Check if git remote directory does not exist
 if ! [[ -d /home/$username/remote ]]; then
   # Create a new remote directory

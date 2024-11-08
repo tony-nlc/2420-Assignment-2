@@ -138,6 +138,7 @@ make_directory() {
   if ! [[ -d $1 ]]; then
     # Create directory if it doesnt exist
     mkdir $1
+    echo "$1 is created"
   else
     # Print an error message
     echo Directory Already Exist in Path:$1
@@ -172,6 +173,9 @@ link() {
 pacman -S --noconfirm --needed tmux kakoune
 echo
 
+echo Clone Remote Git Repository
+printf "%60s" " " | tr ' ' '-'
+echo
 # Check if git remote directory does not exist
 if ! [[ -d /home/$username/remote ]]; then
   # Create a new remote directory
@@ -192,6 +196,7 @@ else
 fi
 
 # Step 2: Create symbolic links for binaries
+
 
 # Print a lookup message
 echo /home/$username/bin
@@ -303,7 +308,7 @@ fi
 
 # Show the usage of the script
 show_help() {
-  echo "Usage: $0 -r <filepath> -u <username>"
+  echo "Usage: $0 -r <file path> -u <username>"
   echo "  -r <filepath>           File path of requirement file"
   echo "  -u <user>               User we are linking the config and bin"
   exit 0
@@ -446,6 +451,7 @@ make_directory() {
   if ! [[ -d $1 ]]; then
     # Create directory if it doesnt exist
     mkdir $1
+    echo "$1 is created"
   else
     # Print an error message
     echo Directory Already Exist in Path:$1
@@ -550,7 +556,7 @@ echo "$username:x:$gid:" >>/etc/group
 # Handle if user_home already exist
 make_directory "$user_home"
 # Copy skeleteon to user_home recursively [10]
-cp -r /etc/skel/* "$user_home"
+cp -r /etc/skel/. "$user_home"
 # Change ownership of user_home to user
 chown -R "$username:$gid" "$user_home"
 # Change access for user_home
