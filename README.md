@@ -354,13 +354,15 @@ echo
 > sudo chmod u+x ./install ./link ./setup # Add execute permission for user
 > ```
 
-Run the main script to set up your system.
+Run the setup script to set up your system.
 
 ```bash
 # Run the setup script for new user
 sudo ./setup -r <Packages File Path> -u <username>
 # Or you can setup for your current user
 sudo ./setup
+# Use -h option for usage
+sudo ./setup -h 
 ```
 > [!TIP]
 > Run this command to verify the linking
