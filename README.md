@@ -23,10 +23,11 @@ These scripts provide a fast way to configure a new environment by installing ne
 
 #### Script 1.1: Cloning Configuration & Installing Packages
 
-This script installs packages listed in a `requirement` file.
+This script installs packages listed in `/home/<username>requirement` file or a **user defined path**.
 
 > [!IMPORTANT]
-> Create `requirement` file in order to install packages
+> This script can take user input.
+> Refer to [Link to Header](####script_1.3:_activating_the_scripts)
 
 **How to create a requirement file**
 
@@ -41,8 +42,8 @@ nvim requirement
 ```
 
 > [!TIP]
-> Press **i** then start typing the name of packages you wanted to install
-> Use **Enter** to separate packages
+> 1. Press **i** then start typing the name of packages you wanted to install
+> 2. Use **Enter** to separate packages
 
 **Example `requirement` File Format**
 
@@ -53,84 +54,10 @@ unzip
 # Add more as needed
 ```
 
-**Sample Script**
+> [!TIP]
+> 1. Press **esc** then start typing the name of packages you wanted to install
+> 2. Enter **:wq** to save the requirement file
 
-```bash
-#!/bin/bash
-# Filename: setup
-# Description: Run setup and link scripts
-# Reference:
-# [8] https://ss64.com/bash/ps.html
-# [9] https://ss64.com/bash/sudo.html
-
-################################################################################
-# Initiaiization                                                               #
-################################################################################
-
-# Set a variable for username
-user=$SUDO_USER
-# Set a requirement variable default value as requirement
-file_path="/home/$user/requirement"
-
-################################################################################
-# Error Handling                                                               #
-################################################################################
-
-# Check if the script is run by root privillege [8]
-if [[ $EUID -ne 0 ]]; then
-  # Print an error message
-  echo "You need to 'sudo' this script"
-  # Exit the script
-  exit 1
-fi
-
-################################################################################
-# Help                                                                         #
-################################################################################
-
-# Show the usage of the script
-show_help() {
-  echo "Usage: $0 -r <filepath> -u <username>"
-  echo "  -r <filepath>           Filename of requirement file"
-  echo "  -u <user>               User we are linking the config and bin"
-  exit 0
-}
-
-################################################################################
-# Main program                                                                 #
-################################################################################
-
-# Parsing argument into variable
-while getopts ":r:u:h" opt; do
-  case "${opt}" in
-  r)
-    # Assign OPTARG's value to requirement
-    file_path=${OPTARG}
-    ;;
-  u)
-    # Assign OPTARG's value to user variable
-    user=${OPTARG}
-    ;;
-  h)
-    # Print help message
-    show_help
-    ;;
-  :)
-    # Exit script if OPTARGV is missing
-    exit 1
-    ;;
-  ?)
-    # Exit script for invalid option
-    exit 1
-    ;;
-  esac
-done
-
-# Run  install script
-./install $user $file_path
-# Run link script
-./link $user
-```
 
 #### Script 1.2: Creating Symbolic Links
 
@@ -229,7 +156,7 @@ make_directory /home/$username/.config
 # Install two packages needed
 pacman -S --noconfirm tmux kakoune
 
-# Loop over application directory under config folder in remote git repository 
+# Loop over application directory under config folder in remote git repository
 for dir in /home/$username/remote/main/config/*; do
   # Get the basename of the directory [4]
   subdir_name=$(basename "$dir")
@@ -331,7 +258,7 @@ done
 # Run  install script
 ./install $user $filename
 # Run link script
-./link $user # Run link script
+./link $user
 ```
 
 > [!IMPORTANT]
@@ -345,9 +272,9 @@ Run the main script to set up your system.
 
 ```bash
 # Run the setup script for new user
-sudo ./setup -r <Packages File Path> -u <username> 
+sudo ./setup -r <Packages File Path> -u <username>
 # Or you can setup for your current user
-sudo ./setup 
+sudo ./setup
 ```
 
 ---
@@ -357,13 +284,15 @@ sudo ./setup
 The User Creation Scripts streamline essential users configuration for a newly installed system. This script includes:
 
 > [!NOTE]
+>
 > -   Shell Configuration
 > -   Home Directory Setup
 > -   Group Configuration
 
 These scripts provide a fast way to configure a new user by configuring user's group and setting up for shell and home directory.
 
-#### Script 2
+#### Script 2: User Creation Script
+
 ```bash
 #!/bin/bash
 # Filename: new_user
@@ -374,19 +303,24 @@ These scripts provide a fast way to configure a new user by configuring user's g
 # - Group configuration
 # - Setup password
 # Reference:
-# [10] https://unix.stackexchange.com/questions/153225/what-steps-to-add-a-user-to-a-system-without-using-useradd-adduser
+# [10] https://tldp.org/LDP/sag/html/adduser.html
 # [11] https://opensource.com/article/19/12/help-bash-program
 # [12] https://ss64.com/bash/getopts.html
 # [13] https://www.cyberciti.biz/faq/understanding-etcpasswd-file-format/
 # [14] https://www.cyberciti.biz/faq/understanding-etcgroup-file/
 # [16] https://ss64.com/bash/awk.html
+# [17] https://stackoverflow.com/questions/55877410/understanding-how-ofs-works-in-awk
+# [18] https://stackoverflow.com/questions/9708028/awk-return-value-to-shell-script
+# [19] https://stackoverflow.com/questions/70384448/how-should-i-use-if-else-statement-in-awk
+# [20] https://unix.stackexchange.com/questions/136322/how-to-replace-the-content-of-a-specific-column-with-awk
+# [21] https://www.cyberciti.biz/faq/understanding-etcshadow-file/
 
 ################################################################################
 # Initiaiization                                                               #
 ################################################################################
 
 # Initialize a default shell variable
-shell="bin/bash"
+shell="/bin/bash"
 # Initialize a default string for groups
 groups="wheel"
 # Initialize a default info for user
@@ -412,7 +346,7 @@ make_directory() {
     mkdir $1
   else
     # Print an error message
-    echo Directory Already Exist in Path:$2
+    echo Directory Already Exist in Path:$1
   fi
 }
 
@@ -420,7 +354,7 @@ make_directory() {
 # Help                                                                         #
 ################################################################################
 
-# Show the usage of the script
+# Show the usage of the script [11]
 show_help() {
   echo "Usage: $0 -u <username> -s <shell> -g <group1,group2,...> -i <User ID Info>"
   echo "  -u <username>           Username of the new user (required)"
@@ -434,7 +368,7 @@ show_help() {
 # Main program                                                                 #
 ################################################################################
 
-# Parsing option arguments to variable
+# Parsing option arguments to variable [12]
 while getopts ":u:s:g:i:h" opt; do
   case "${opt}" in
   # Passing $OPTARG to username variable
@@ -463,11 +397,11 @@ if [[ -z "$username" ]]; then
 fi
 
 # Check if username already exists in /etc/passwd
-# awk -F: specifies to search and separate row by ":"
-# -v username="$username" specifies username we are looking up
-# $1 == username checks if first column is equal to username
-# print "User Found", $0 returns a message
-# /etc/passwd is the file we are searching
+# awk -F: specifies to search and separate row by ":" [16]
+# -v username="$username" specifies username we are looking up [16]
+# $1 == username checks if first column is equal to username [19]
+# print "User Found", $0 returns a message [18]
+# /etc/passwd is the file we are searching [13]
 if [[ -n $(awk -F: -v username="$username" '$1 == username {print "Found"}' /etc/passwd) ]]; then
   # Print an error message showing username already exist
   echo "Username found in file"
@@ -479,41 +413,41 @@ else
 fi
 
 # Get the next avaliable UID
-# awk -F: specifies to search and separate row by ":"
-# $3 >= 1000 && $3 <= 65533 specifies the range we are looking for
-# { if ($3 > max) max = $3 } Checks if third column UID column if larger than max a local variable
-# END specifies by the end
-# if (max >= 1000) checks if max >= 1000
-# if yes, return the value max+1
-# if no, return 1000
+# awk -F: specifies to search and separate row by ":" [16]
+# $3 >= 1000 && $3 <= 65533 specifies the range we are looking for [19]
+# { if ($3 > max) max = $3 } Checks if third column UID column if larger than max a local variable [19]
+# END specifies do the following action by the end [16]
+# if (max >= 1000) checks if max >= 1000 [19]
+# if yes, return the value max+1 [18]
+# if no, return 1000 [18]
 # /etc/passwd specifies the value we are looking for
 uid=$(awk -F: '$3 >= 1000 && $3 <= 65533 { if ($3 > max) max = $3 } END { if (max >= 1000) print max+1; else print 1000 }' /etc/passwd)
 
 # Get the next avaliable GID
-# awk -F: specifies to search and separate row by ":"
-# $4 >= 1000 && $4 <= 65533 specifies the range we are looking for
-# { if ($4 > max) max = $4 } Checks if fourth column UID column if larger than max a local variable
-# END specifies by the end
-# if (max >= 1000) checks if max >= 1000
-# if yes, return the value max+1
-# if no, return 1000
+# awk -F: specifies to search and separate row by ":" [16]
+# $4 >= 1000 && $4 <= 65533 specifies the range we are looking for [19]
+# { if ($4 > max) max = $4 } Checks if fourth column UID column if larger than max a local variable [19]
+# END specifies do the following action by the end [16]
+# if (max >= 1000) checks if max >= 1000 [19]
+# if yes, return the value max+1 [18]
+# if no, return 1000 [18]
 # /etc/passwd specifies the value we are looking for
 gid=$(awk -F: '$3 >= 1000 && $4 <= 65533 { if ($4 > max) max = $4 } END { if (max >= 1000) print max+1; else print 1000 }' /etc/passwd)
 
-# Set a user_home variable
+# Set a user_home variable [13]
 user_home="/home/$username"
-# Set a user_entry for /etc/passwd
+# Set a user_entry for /etc/passwd [13]
 user_entry="$username:x:$uid:$gid:$info:$user_home:$shell"
-# Append user_entry variable to /etc/passwd
+# Append user_entry variable to /etc/passwd [13]
 echo "$user_entry" >>/etc/passwd
-# Append user_entry variable to /etc/shadow
+# Append user_entry variable to /etc/shadow [21]
 echo "$username:!*::::::" >>/etc/shadow
-# Append user_entry variable to /etc/group
+# Append user_entry variable to /etc/group [14]
 echo "$username:x:$gid:" >>/etc/group
 
 # Handle if user_home already exist
 make_directory "$user_home"
-# Copy skeleteon to user_home recursively
+# Copy skeleteon to user_home recursively [10]
 cp -r /etc/skel/. "$user_home"
 # Change ownership of user_home to user
 chown -R "$username:$gid" "$user_home"
@@ -521,41 +455,65 @@ chown -R "$username:$gid" "$user_home"
 chmod -R 751 "$user_home"
 
 # Separate groups string into an array by comma
-groups=($(awk -F, '{for(i=1; i<=NF; i++) print $i}' <<<"$groups"))
+separated_groups=($(awk -F, '{for(i=1; i<=NF; i++) print $i}' <<<"$groups"))
 # Loop over group in groups
-for ((i = 0; i < ${#groups[@]}; i++)); do
-  # specifies to search and separate row by ":"
-  # -F: specifies separate by ":"
-  # -v group="${groups[i]}" sepcifies the group we are editing
-  # -v user="$username" specifies the username as variable
-  # if ($1 == group) checks if the first column of the row matches to the group
-  # if ($4 != "") checks if the fourth column of the row is not empty
-  # $4 = $4 "," user appends our username to column 4
-  # else $4 = user set the value of column 4 to user
-  # print $0 returns a new row if changed else the original row
-  # >/etc/group.tmp will write the result to /etc/group.tmp which temporary store the edited /etc/group
-  # && mv /etc/group.tmp /etc/group then rename /etc/group.tmp back to /etc/group
-  # /etc/group is the file we are searching
-  if [[ -n $(awk -F: -v group="${groups[i]}" '$1 == group {print "Found"}' /etc/group) ]]; then
-
-    awk -F: -v group="${groups[i]}" -v user="$username" '
-      {
+for ((i = 0; i < ${#separated_groups[@]}; i++)); do
+  # Check if group exists in /etc/group
+  # awk -F: specifies to search and separate row by ":"
+  # -v group="${separated_groups[i]}" specifies group name we are looking up
+  # $1 == username checks if first column is equal to groupname
+  # print "User Found", $0 returns a message
+  # /etc/passwd is the file we are searching
+  if [[ -n $(awk -F: -v group="${separated_groups[i]}" '$1 == group {print "Found"}' /etc/group) ]]; then
+    # specifies to search and separate row by ":"
+    # -F: specifies separate by ":"
+    # -v group="${groups[i]}" sepcifies the group we are editing
+    # -v user="$username" specifies the username as variable
+    # if ($1 == group) checks if the first column of the row matches to the group
+    # if ($4 != "") checks if the fourth column of the row is not empty
+    # $4 = $4 "," user appends our username to the fourth column
+    # else if ($4 !~ "\\b" user "\\b") checks if column 4 do not have user variable's value in it
+    # $4 = $4 "," user; append user variable's value to the fourth column
+    # print $0 returns a new row if changed else the original row
+    # >/etc/group.tmp will write the result to /etc/group.tmp which is temporary file store the edited /etc/group
+    # && mv /etc/group.tmp /etc/group then rename /etc/group.tmp back to /etc/group
+    # /etc/group is the file we are searching
+    awk -F: -v group="${separated_groups[i]}" -v user="$username" 'BEGIN { OFS = ":" }
+    {
       if ($1 == group) {
-          if ($4 != "") {
-              $4 = $4 "," user;
-          } else {
-              $4 = user;
-          }
+        if ($4 == "") {
+          $4 = user;
+        } else if ($4 !~ "\\b" user "\\b") {
+          $4 = $4 "," user;
+        }
       }
       print $0;
-      }' /etc/group >/etc/group.tmp && mv /etc/group.tmp /etc/group
+    }' /etc/group > /etc/group.tmp && mv /etc/group.tmp /etc/group
     # Print a success message
-    echo "User $username added to group ${groups[i]}"
+    echo "User $username added to group ${separated_groups[i]}"
   else
-    echo "${groups[i]} does not exist"
+    echo "${separated_groups[i]} does not exist"
   fi
 done
 
 # Change password for that user
 passwd $username
+```
+
+> [!IMPORTANT]
+> Make the main script executable
+>
+> ```bash
+> sudo chmod u+x ./new_user # Add execute permission for user
+> ```
+
+Run the main script to set up your system.
+
+```bash
+# Run the setup script for new user
+sudo ./new_user -u <username> -s <shell path> -g <groups> -i <user info>
+# Run -h option for help
+sudo ./new_user -h
+# Example to create a user
+sudo ./new_user -u 
 ```
