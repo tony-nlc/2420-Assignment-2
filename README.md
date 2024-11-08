@@ -546,7 +546,7 @@ echo "$username:x:$gid:" >>/etc/group
 # Handle if user_home already exist
 make_directory "$user_home"
 # Copy skeleteon to user_home recursively [10]
-cp -r /etc/skel/. "$user_home"
+cp -r /etc/skel "$user_home"
 # Change ownership of user_home to user
 chown -R "$username:$gid" "$user_home"
 # Change access for user_home
@@ -630,5 +630,6 @@ sudo ./new_user -u testing -s /bin/bash -g wheel -i testing
 > sudo tail -1 /etc/shadow
 > tail -1 /etc/group
 > cat /etc/group | grep <username>
+> ls 
 > su <username>
 > ```
