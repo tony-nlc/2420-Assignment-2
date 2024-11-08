@@ -635,7 +635,7 @@ sudo ./new_user -u testing -s /bin/bash -g wheel -i testing
 ```
 
 > [!TIP]
-> Run this command to verify the user creation
+> Run these commands to verify the user creation
 > ```bash
 > su <username>
 > tail -1 /etc/passwd
