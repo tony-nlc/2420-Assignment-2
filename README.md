@@ -355,14 +355,12 @@ echo
 ```
 
 > [!IMPORTANT]
-> Make the main script executable
->
+> Make The Three Scripts Executable
 > ```bash
 > sudo chmod u+x ./install ./link ./setup # Add execute permission for user
 > ```
 
 Run the setup script to set up your system.
-
 ```bash
 # Run the setup script for new user
 sudo ./setup -r <Packages File Path> -u <username>
@@ -371,6 +369,7 @@ sudo ./setup
 # Use -h option for usage
 sudo ./setup -h 
 ```
+
 > [!TIP]
 > Run this command to verify the linking
 > ```bash
@@ -380,7 +379,7 @@ sudo ./setup -h
 
 ### Project 2: User Creation Script
 
-The User Creation Scripts streamline essential users configuration for a newly installed system. This script includes:
+The User Creation Script streamline essential users configuration for a newly installed system. This script includes:
 
 > [!NOTE]
 >
@@ -388,7 +387,7 @@ The User Creation Scripts streamline essential users configuration for a newly i
 > -   Home Directory Setup
 > -   Group Configuration
 
-These scripts provide a fast way to configure a new user by configuring user's group and setting up for shell and home directory.
+This script provide a fast way to configure a new user by configuring user's group and setting up for shell and home directory.
 
 #### Script 2: User Creation Script
 
@@ -600,14 +599,21 @@ passwd $username
 ```
 
 > [!IMPORTANT]
-> Make the main script executable
->
+> Make the new_user Script Executable
 > ```bash
 > sudo chmod u+x ./new_user # Add execute permission for user
 > ```
 
-Run the new_user script to set up your system.
+> [!NOTE]
+> -s, -g, -i options are optional.
+> Their Default Value are:
+>```bash
+> shell="/bin/bash"
+> groups="wheel"
+> info="Regular User"
+>```
 
+Run the new_user script to set up your system.
 ```bash
 # Run the setup script for new user
 sudo ./new_user -u <username> -s <shell path> -g <groups> -i <user info>
