@@ -21,6 +21,8 @@ The System Setup Scripts streamline essential setup tasks for a newly installed 
 
 These scripts provide a fast way to configure a new environment by installing necessary software and linking configurations from a Git repository.
 
+---
+
 #### Script 1.1: Cloning Configuration & Installing Packages
 
 This script installs packages listed in `/home/<username>requirement` file or a **user defined path**.
@@ -98,7 +100,7 @@ fi
 ```
 > [!WARNING]
 > You Should Not Run This Script Directly
-
+---
 #### Script 1.2: Creating Symbolic Links
 
 This script links configuration files and binaries from a Git repository to the system's configuration directories.
@@ -260,7 +262,7 @@ link /home/$username/remote/main/home/bashrc /home/$username/.bashrc
 
 > [!WARNING]
 > You Should Not Run This Script Directly
-
+---
 #### Script 1.3: Activating the Scripts
 
 Use the following script to run the setup and linking processes:
@@ -626,10 +628,10 @@ sudo ./new_user -u testing -s /bin/bash -g wheel -i testing
 > [!TIP]
 > Run this command to verify the user creation
 > ```bash
+> su <username>
 > tail -1 /etc/passwd
-> sudo tail -1 /etc/shadow
+> tail -1 /etc/shadow
 > tail -1 /etc/group
 > cat /etc/group | grep <username>
-> ls 
-> su <username>
+> ls -la ~
 > ```
