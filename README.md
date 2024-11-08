@@ -605,7 +605,8 @@ passwd $username
 > [!IMPORTANT]
 > Make the new_user Script Executable
 > ```bash
-> sudo chmod u+x ./new_user # Add execute permission for user
+> # Add execute permission for user
+> sudo chmod u+x ./new_user 
 > ```
 
 > [!NOTE]
