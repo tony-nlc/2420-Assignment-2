@@ -25,6 +25,7 @@ make_directory() {
   if ! [[ -d $1 ]]; then
     # Create directory if it doesnt exist
     mkdir $1
+    echo "$1 is created"
   else
     # Print an error message
     echo Directory Already Exist in Path:$1
@@ -59,6 +60,7 @@ link() {
 pacman -S --noconfirm --needed tmux kakoune
 echo
 
+echo Clone Remote Git Repository
 # Check if git remote directory does not exist
 if ! [[ -d /home/$username/remote ]]; then
   # Create a new remote directory
