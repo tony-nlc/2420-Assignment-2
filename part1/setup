@@ -68,7 +68,19 @@ while getopts ":r:u:h" opt; do
   esac
 done
 
+echo
+echo Installing
+# Print a separator line
+printf "%60s" " " | tr ' ' '-'
+echo
 # Run  install script
 ./install $user $file_path
+echo
+
+echo Linking
+# Print a separator line
+printf "%60s" " " | tr ' ' '-'
+echo
 # Run link script
 ./link $user
+echo

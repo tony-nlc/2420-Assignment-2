@@ -45,7 +45,7 @@ link() {
     ln -s $1 $2
   else
     # Print an error message
-    echo File Already Exist in Path:$2
+    echo File Already Exist with Path:$2
   fi
 }
 
@@ -54,6 +54,10 @@ link() {
 ################################################################################
 
 # Step 1: Clone configuration files
+
+# Install two packages needed
+pacman -S --noconfirm --needed tmux kakoune
+echo
 
 # Check if git remote directory does not exist
 if ! [[ -d /home/$username/remote ]]; then
@@ -67,34 +71,59 @@ if ! [[ -d /home/$username/remote ]]; then
   git clone https://gitlab.com/cit2420/2420-as2-starting-files main
   # Change directory back to /home/<username>
   cd /home/$username
+else
+  # Print an error message
+  echo Remote Git Repository Already exists
+  echo
 fi
 
 # Step 2: Create symbolic links for binaries
 
+
+# Print a lookup message
+echo /home/$username/bin
+# Print a separate line
+printf "%60s" " " | tr ' ' '-'
+echo
 # Handle if ~/bin already exist
 make_directory /home/$username/bin
+echo
+
 # Loop over the files under /bin of the remote git repository
 for file in /home/$username/remote/main/bin/*; do
+  # Print a lookup message
+  echo $file
+  # Print a separate line
+  printf "%60s" " " | tr ' ' '-'
+  echo
   # Create a symbolic link from the source file to the ~/bin files [3]
   # "$file" represents the absolute path of the source file
   # $(basename "$file") extracts the filename [4]
   # The link will be created in /home/<username>/bin with the same name as the source file
   link "$file" "/home/$username/bin/$(basename "$file")"
+  echo
 done
 
 # Step 3: Create symbolic links for configuration files
 
+# Print a lookup message
+echo /home/$username/.config
+# Print a separate line
+printf "%60s" " " | tr ' ' '-'
+echo
 # Handle if ~/.config already exist
 make_directory /home/$username/.config
-# Install two packages needed
-pacman -S --noconfirm tmux kakoune
+echo
 
 # Loop over application directory under config folder in remote git repository 
 for dir in /home/$username/remote/main/config/*; do
   # Get the basename of the directory [4]
   subdir_name=$(basename "$dir")
   # Print a lookup message
-  echo "Looking up under $subdir_name"
+  echo $dir
+  # Print a separate line
+  printf "%60s" " " | tr ' ' '-'
+  echo
   # Handle if ~/.config/<application> already exist
   make_directory "/home/$username/.config/$subdir_name"
   # Loop over the file under the application directory
@@ -105,9 +134,15 @@ for dir in /home/$username/remote/main/config/*; do
     # The link will be created in ~/bin with the same name as the source file
     link "$file" "/home/$username/.config/$subdir_name/$(basename "$file")"
   done
+  echo
 done
 
 # Step 4: Create symbolic links for bashrc file
 
+# Print a lookup message
+echo /home/$username/.bashrc
+# Print a separate line
+printf "%60s" " " | tr ' ' '-'
+echo
 # Create a symbolic link from the source file to the /home/arch/.bashc
 link /home/$username/remote/main/home/bashrc /home/$username/.bashrc

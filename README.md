@@ -58,6 +58,44 @@ unzip
 > 1. Press **esc** then start typing the name of packages you wanted to install
 > 2. Enter **:wq** to save the requirement file
 
+```bash
+#!/bin/bash
+# Filename: install
+# Description: Initialize Git and install user-defined packages
+# Reference:
+# [1] https://ss64.com/bash/syntax-file-operators.html
+# [2] https://ss64.com/bash/syntax-substitution.html
+# [15] https://ss64.com/bash/tr.html
+
+################################################################################
+# Initiaiization                                                               #
+################################################################################
+
+# Set the username
+username=$1
+# Set the requirement filename
+file_path=$2
+
+################################################################################
+# Main program                                                                 #
+################################################################################
+
+# Step 1: Install dependencies and packages
+
+# Check if requirement exist
+# -f checks if requirement is a regular file [1]
+if [[ -f $file_path ]]; then
+    # Installs packages listed in the 'requirement' file
+    # $(cat requirement) will substitue the content of given file [2]
+    # tr "\r" " " will replace all end of line to space
+    pacman -S --needed --noconfirm  $(cat $file_path | tr "\r" " ")
+else
+    # Print an error message
+    echo You have not create a requirement file
+    # Exit the script
+    exit 1
+fi
+```
 
 #### Script 1.2: Creating Symbolic Links
 
@@ -112,7 +150,7 @@ link() {
     ln -s $1 $2
   else
     # Print an error message
-    echo File Already Exist in Path:$2
+    echo File Already Exist with Path:$2
   fi
 }
 
@@ -121,6 +159,10 @@ link() {
 ################################################################################
 
 # Step 1: Clone configuration files
+
+# Install two packages needed
+pacman -S --noconfirm --needed tmux kakoune
+echo
 
 # Check if git remote directory does not exist
 if ! [[ -d /home/$username/remote ]]; then
@@ -134,34 +176,59 @@ if ! [[ -d /home/$username/remote ]]; then
   git clone https://gitlab.com/cit2420/2420-as2-starting-files main
   # Change directory back to /home/<username>
   cd /home/$username
+else
+  # Print an error message
+  echo Remote Git Repository Already exists
+  echo
 fi
 
 # Step 2: Create symbolic links for binaries
 
+
+# Print a lookup message
+echo /home/$username/bin
+# Print a separate line
+printf "%60s" " " | tr ' ' '-'
+echo
 # Handle if ~/bin already exist
 make_directory /home/$username/bin
+echo
+
 # Loop over the files under /bin of the remote git repository
 for file in /home/$username/remote/main/bin/*; do
+  # Print a lookup message
+  echo $file
+  # Print a separate line
+  printf "%60s" " " | tr ' ' '-'
+  echo
   # Create a symbolic link from the source file to the ~/bin files [3]
   # "$file" represents the absolute path of the source file
   # $(basename "$file") extracts the filename [4]
   # The link will be created in /home/<username>/bin with the same name as the source file
   link "$file" "/home/$username/bin/$(basename "$file")"
+  echo
 done
 
 # Step 3: Create symbolic links for configuration files
 
+# Print a lookup message
+echo /home/$username/.config
+# Print a separate line
+printf "%60s" " " | tr ' ' '-'
+echo
 # Handle if ~/.config already exist
 make_directory /home/$username/.config
-# Install two packages needed
-pacman -S --noconfirm tmux kakoune
+echo
 
-# Loop over application directory under config folder in remote git repository
+# Loop over application directory under config folder in remote git repository 
 for dir in /home/$username/remote/main/config/*; do
   # Get the basename of the directory [4]
   subdir_name=$(basename "$dir")
   # Print a lookup message
-  echo "Looking up under $subdir_name"
+  echo $dir
+  # Print a separate line
+  printf "%60s" " " | tr ' ' '-'
+  echo
   # Handle if ~/.config/<application> already exist
   make_directory "/home/$username/.config/$subdir_name"
   # Loop over the file under the application directory
@@ -172,14 +239,21 @@ for dir in /home/$username/remote/main/config/*; do
     # The link will be created in ~/bin with the same name as the source file
     link "$file" "/home/$username/.config/$subdir_name/$(basename "$file")"
   done
+  echo
 done
 
 # Step 4: Create symbolic links for bashrc file
 
+# Print a lookup message
+echo /home/$username/.bashrc
+# Print a separate line
+printf "%60s" " " | tr ' ' '-'
+echo
 # Create a symbolic link from the source file to the /home/arch/.bashc
 link /home/$username/remote/main/home/bashrc /home/$username/.bashrc
 ```
-
+> [!WARNING]
+> Do not run this script directly
 #### Script 1.3: Activating the Scripts
 
 Use the following script to run the setup and linking processes:
@@ -199,7 +273,7 @@ Use the following script to run the setup and linking processes:
 # Set a variable for username
 user=$SUDO_USER
 # Set a requirement variable default value as requirement
-filename="/home/$user/$requirement"
+file_path="/home/$user/requirement"
 
 ################################################################################
 # Error Handling                                                               #
@@ -219,8 +293,8 @@ fi
 
 # Show the usage of the script
 show_help() {
-  echo "Usage: $0 -r <filename> -u <username>"
-  echo "  -r <filename>           File path of file"
+  echo "Usage: $0 -r <filepath> -u <username>"
+  echo "  -r <filepath>           Filename of requirement file"
   echo "  -u <user>               User we are linking the config and bin"
   exit 0
 }
@@ -234,7 +308,7 @@ while getopts ":r:u:h" opt; do
   case "${opt}" in
   r)
     # Assign OPTARG's value to requirement
-    filename=${OPTARG}
+    file_path=${OPTARG}
     ;;
   u)
     # Assign OPTARG's value to user variable
@@ -255,10 +329,22 @@ while getopts ":r:u:h" opt; do
   esac
 done
 
+echo
+echo Installing
+# Print a separator line
+printf "%60s" " " | tr ' ' '-'
+echo
 # Run  install script
-./install $user $filename
+./install $user $file_path
+echo
+
+echo Linking
+# Print a separator line
+printf "%60s" " " | tr ' ' '-'
+echo
 # Run link script
 ./link $user
+echo
 ```
 
 > [!IMPORTANT]
@@ -276,7 +362,11 @@ sudo ./setup -r <Packages File Path> -u <username>
 # Or you can setup for your current user
 sudo ./setup
 ```
-
+> [!TIP]
+> Run this command to verify the linking
+> ```bash
+> ls -la ~/bin ~/.bashrc ~/.config/kak/ ~/.config/tmux
+> ```
 ---
 
 ### Project 2: User Creation Script
@@ -515,5 +605,5 @@ sudo ./new_user -u <username> -s <shell path> -g <groups> -i <user info>
 # Run -h option for help
 sudo ./new_user -h
 # Example to create a user
-sudo ./new_user -u 
+sudo ./new_user -u testing -s /bin/bash -g wheel -i testing
 ```
