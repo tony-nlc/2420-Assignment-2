@@ -599,7 +599,7 @@ passwd $username
 > sudo chmod u+x ./new_user # Add execute permission for user
 > ```
 
-Run the main script to set up your system.
+Run the new_user script to set up your system.
 
 ```bash
 # Run the setup script for new user
@@ -609,3 +609,13 @@ sudo ./new_user -h
 # Example to create a user
 sudo ./new_user -u testing -s /bin/bash -g wheel -i testing
 ```
+
+> [!TIP]
+> Run this command to verify the user creation
+> ```bash
+> tail -1 /etc/passwd
+> tail -1 /etc/shadow
+> tail -1 /etc/group
+> cat /etc/group | grep <username>
+> su <username>
+> ```
