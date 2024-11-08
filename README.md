@@ -639,7 +639,7 @@ sudo ./new_user -u testing -s /bin/bash -g wheel -i testing
 > ```bash
 > su <username>
 > tail -1 /etc/passwd
-> tail -1 /etc/shadow
+> sudo tail -1 /etc/shadow
 > tail -1 /etc/group
 > cat /etc/group | grep <username>
 > ls -la ~
