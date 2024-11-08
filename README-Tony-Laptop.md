@@ -23,11 +23,10 @@ These scripts provide a fast way to configure a new environment by installing ne
 
 #### Script 1.1: Cloning Configuration & Installing Packages
 
-This script installs packages listed in `/home/<username>requirement` file or a **user defined path**.
+This script installs packages listed in a `requirement` file.
 
 > [!IMPORTANT]
-> This script can take user input.
-> Refer to Script 1.3
+> Create `requirement` file in order to install packages
 
 **How to create a requirement file**
 
@@ -42,8 +41,8 @@ nvim requirement
 ```
 
 > [!TIP]
-> 1. Press **i** then start typing the name of packages you wanted to install
-> 2. Use **Enter** to separate packages
+> Press **i** then start typing the name of packages you wanted to install
+> Use **Enter** to separate packages
 
 **Example `requirement` File Format**
 
@@ -54,59 +53,89 @@ unzip
 # Add more as needed
 ```
 
-> [!TIP]
-> 1. Press **esc** then start typing the name of packages you wanted to install
-> 2. Enter **:wq** to save the requirement file
+**Sample Script**
 
 ```bash
 #!/bin/bash
-# Filename: install
-# Description: Initialize Git and install user-defined packages
+# Filename: setup
+# Description: Run setup and link scripts
 # Reference:
-# [1] https://ss64.com/bash/syntax-file-operators.html
-# [2] https://ss64.com/bash/syntax-substitution.html
-# [15] https://ss64.com/bash/tr.html
+# [8] https://ss64.com/bash/ps.html
+# [9] https://ss64.com/bash/sudo.html
 
 ################################################################################
 # Initiaiization                                                               #
 ################################################################################
 
-# Set the username
-username=$1
-# Set the requirement filename
-file_path=$2
+# Set a variable for username
+user=$SUDO_USER
+# Set a requirement variable default value as requirement
+file_path="/home/$user/requirement"
+
+################################################################################
+# Error Handling                                                               #
+################################################################################
+
+# Check if the script is run by root privillege [8]
+if [[ $EUID -ne 0 ]]; then
+  # Print an error message
+  echo "You need to 'sudo' this script"
+  # Exit the script
+  exit 1
+fi
+
+################################################################################
+# Help                                                                         #
+################################################################################
+
+# Show the usage of the script
+show_help() {
+  echo "Usage: $0 -r <filepath> -u <username>"
+  echo "  -r <filepath>           Filename of requirement file"
+  echo "  -u <user>               User we are linking the config and bin"
+  exit 0
+}
 
 ################################################################################
 # Main program                                                                 #
 ################################################################################
 
-# Step 1: Install dependencies and packages
-
-# Check if requirement exist
-# -f checks if requirement is a regular file [1]
-if [[ -f $file_path ]]; then
-    # Installs packages listed in the 'requirement' file
-    # $(cat requirement) will substitue the content of given file [2]
-    # tr "\r" " " will replace all end of line to space
-    pacman -S --needed --noconfirm  $(cat $file_path | tr "\r" " ")
-else
-    # Print an error message
-    echo You have not create a requirement file
-    # Exit the script
+# Parsing argument into variable
+while getopts ":r:u:h" opt; do
+  case "${opt}" in
+  r)
+    # Assign OPTARG's value to requirement
+    file_path=${OPTARG}
+    ;;
+  u)
+    # Assign OPTARG's value to user variable
+    user=${OPTARG}
+    ;;
+  h)
+    # Print help message
+    show_help
+    ;;
+  :)
+    # Exit script if OPTARGV is missing
     exit 1
-fi
+    ;;
+  ?)
+    # Exit script for invalid option
+    exit 1
+    ;;
+  esac
+done
+
+# Run  install script
+./install $user $file_path
+# Run link script
+./link $user
 ```
-> [!WARNING]
-> You Should Not Run This Script Directly
 
 #### Script 1.2: Creating Symbolic Links
 
 This script links configuration files and binaries from a Git repository to the system's configuration directories.
 Sample Script
-
-> [!IMPORTANT]
-> This script can take user input.
-> Refer to Script 1.3
 
 ```bash
 #!/bin/bash
@@ -156,7 +185,7 @@ link() {
     ln -s $1 $2
   else
     # Print an error message
-    echo File Already Exist with Path:$2
+    echo File Already Exist in Path:$2
   fi
 }
 
@@ -165,10 +194,6 @@ link() {
 ################################################################################
 
 # Step 1: Clone configuration files
-
-# Install two packages needed
-pacman -S --noconfirm --needed tmux kakoune
-echo
 
 # Check if git remote directory does not exist
 if ! [[ -d /home/$username/remote ]]; then
@@ -182,58 +207,34 @@ if ! [[ -d /home/$username/remote ]]; then
   git clone https://gitlab.com/cit2420/2420-as2-starting-files main
   # Change directory back to /home/<username>
   cd /home/$username
-else
-  # Print an error message
-  echo Remote Git Repository Already exists
-  echo
 fi
 
 # Step 2: Create symbolic links for binaries
 
-# Print a lookup message
-echo /home/$username/bin
-# Print a separate line
-printf "%60s" " " | tr ' ' '-'
-echo
 # Handle if ~/bin already exist
 make_directory /home/$username/bin
-echo
-
 # Loop over the files under /bin of the remote git repository
 for file in /home/$username/remote/main/bin/*; do
-  # Print a lookup message
-  echo $file
-  # Print a separate line
-  printf "%60s" " " | tr ' ' '-'
-  echo
   # Create a symbolic link from the source file to the ~/bin files [3]
   # "$file" represents the absolute path of the source file
   # $(basename "$file") extracts the filename [4]
   # The link will be created in /home/<username>/bin with the same name as the source file
   link "$file" "/home/$username/bin/$(basename "$file")"
-  echo
 done
 
 # Step 3: Create symbolic links for configuration files
 
-# Print a lookup message
-echo /home/$username/.config
-# Print a separate line
-printf "%60s" " " | tr ' ' '-'
-echo
 # Handle if ~/.config already exist
 make_directory /home/$username/.config
-echo
+# Install two packages needed
+pacman -S --noconfirm tmux kakoune
 
-# Loop over application directory under config folder in remote git repository 
+# Loop over application directory under config folder in remote git repository
 for dir in /home/$username/remote/main/config/*; do
   # Get the basename of the directory [4]
   subdir_name=$(basename "$dir")
   # Print a lookup message
-  echo $dir
-  # Print a separate line
-  printf "%60s" " " | tr ' ' '-'
-  echo
+  echo "Looking up under $subdir_name"
   # Handle if ~/.config/<application> already exist
   make_directory "/home/$username/.config/$subdir_name"
   # Loop over the file under the application directory
@@ -244,22 +245,13 @@ for dir in /home/$username/remote/main/config/*; do
     # The link will be created in ~/bin with the same name as the source file
     link "$file" "/home/$username/.config/$subdir_name/$(basename "$file")"
   done
-  echo
 done
 
 # Step 4: Create symbolic links for bashrc file
 
-# Print a lookup message
-echo /home/$username/.bashrc
-# Print a separate line
-printf "%60s" " " | tr ' ' '-'
-echo
 # Create a symbolic link from the source file to the /home/arch/.bashc
 link /home/$username/remote/main/home/bashrc /home/$username/.bashrc
 ```
-
-> [!WARNING]
-> You Should Not Run This Script Directly
 
 #### Script 1.3: Activating the Scripts
 
@@ -280,7 +272,7 @@ Use the following script to run the setup and linking processes:
 # Set a variable for username
 user=$SUDO_USER
 # Set a requirement variable default value as requirement
-file_path="/home/$user/requirement"
+filename="/home/$user/$requirement"
 
 ################################################################################
 # Error Handling                                                               #
@@ -300,8 +292,8 @@ fi
 
 # Show the usage of the script
 show_help() {
-  echo "Usage: $0 -r <filepath> -u <username>"
-  echo "  -r <filepath>           File path of requirement file"
+  echo "Usage: $0 -r <filename> -u <username>"
+  echo "  -r <filename>           File path of file"
   echo "  -u <user>               User we are linking the config and bin"
   exit 0
 }
@@ -315,7 +307,7 @@ while getopts ":r:u:h" opt; do
   case "${opt}" in
   r)
     # Assign OPTARG's value to requirement
-    file_path=${OPTARG}
+    filename=${OPTARG}
     ;;
   u)
     # Assign OPTARG's value to user variable
@@ -336,22 +328,10 @@ while getopts ":r:u:h" opt; do
   esac
 done
 
-echo
-echo Installing
-# Print a separator line
-printf "%60s" " " | tr ' ' '-'
-echo
 # Run  install script
-./install $user $file_path
-echo
-
-echo Linking
-# Print a separator line
-printf "%60s" " " | tr ' ' '-'
-echo
+./install $user $filename
 # Run link script
-./link $user
-echo
+./link $user # Run link script
 ```
 
 > [!IMPORTANT]
@@ -361,21 +341,15 @@ echo
 > sudo chmod u+x ./install ./link ./setup # Add execute permission for user
 > ```
 
-Run the setup script to set up your system.
+Run the main script to set up your system.
 
 ```bash
 # Run the setup script for new user
 sudo ./setup -r <Packages File Path> -u <username>
 # Or you can setup for your current user
 sudo ./setup
-# Use -h option for usage
-sudo ./setup -h 
 ```
-> [!TIP]
-> Run this command to verify the linking
-> ```bash
-> ls -la ~/bin ~/.bashrc ~/.config/kak/ ~/.config/tmux
-> ```
+
 ---
 
 ### Project 2: User Creation Script
@@ -499,7 +473,7 @@ fi
 # awk -F: specifies to search and separate row by ":" [16]
 # -v username="$username" specifies username we are looking up [16]
 # $1 == username checks if first column is equal to username [19]
-# print "User Found", returns a message [18]
+# print "User Found", $0 returns a message [18]
 # /etc/passwd is the file we are searching [13]
 if [[ -n $(awk -F: -v username="$username" '$1 == username {print "Found"}' /etc/passwd) ]]; then
   # Print an error message showing username already exist
@@ -561,7 +535,7 @@ for ((i = 0; i < ${#separated_groups[@]}; i++)); do
   # awk -F: specifies to search and separate row by ":"
   # -v group="${separated_groups[i]}" specifies group name we are looking up
   # $1 == username checks if first column is equal to groupname
-  # print "User Found", returns a message
+  # print "User Found", $0 returns a message
   # /etc/passwd is the file we are searching
   if [[ -n $(awk -F: -v group="${separated_groups[i]}" '$1 == group {print "Found"}' /etc/group) ]]; then
     # specifies to search and separate row by ":"
@@ -606,7 +580,7 @@ passwd $username
 > sudo chmod u+x ./new_user # Add execute permission for user
 > ```
 
-Run the new_user script to set up your system.
+Run the main script to set up your system.
 
 ```bash
 # Run the setup script for new user
@@ -614,15 +588,5 @@ sudo ./new_user -u <username> -s <shell path> -g <groups> -i <user info>
 # Run -h option for help
 sudo ./new_user -h
 # Example to create a user
-sudo ./new_user -u testing -s /bin/bash -g wheel -i testing
+sudo ./new_user -u foo -s /bin/bash -g wheel -i boo
 ```
-
-> [!TIP]
-> Run this command to verify the user creation
-> ```bash
-> tail -1 /etc/passwd
-> sudo tail -1 /etc/shadow
-> tail -1 /etc/group
-> cat /etc/group | grep <username>
-> su <username>
-> ```

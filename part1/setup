@@ -32,8 +32,8 @@ fi
 
 # Show the usage of the script
 show_help() {
-  echo "Usage: $0 -r <filepath> -u <username>"
-  echo "  -r <filepath>           Filename of requirement file"
+  echo "Usage: $0 -r <file path> -u <username>"
+  echo "  -r <filepath>           File path of requirement file"
   echo "  -u <user>               User we are linking the config and bin"
   exit 0
 }
