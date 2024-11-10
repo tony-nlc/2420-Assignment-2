@@ -25,15 +25,12 @@ These scripts provide a fast way to configure a new environment by installing ne
 
 #### Script 1.1: Cloning Configuration & Installing Packages
 
-This script installs packages listed in `/home/<username>requirement` file or a **user defined path**.
-
 > [!IMPORTANT]
 > This script can take user input.
 > Refer to Script 1.3
 
 **How to create a requirement file**
 
-```bash
 touch requirement
 ```
 
@@ -595,7 +592,11 @@ for ((i = 0; i < ${#separated_groups[@]}; i++)); do
     # if ($1 == group) checks if the first column of the row matches to the group
     # if ($4 != "") checks if the fourth column of the row is not empty
     # $4 = $4 "," user appends our username to the fourth column
-    # else if ($4 !~ "\\b" user "\\b") checks if column 4 do not have user variable's value in it
+    # else if ($4 !~ "\\b" user "\\b") 
+    # \\b is setting a word boundary
+    # And we separate each row by column with space
+    # Therefore we have a space before and after the user variable
+    # is checks if column 4 do not have user variable's value in it
     # $4 = $4 "," user; append user variable's value to the fourth column
     # print $0 returns a new row if changed else the original row
     # >/etc/group.tmp will write the result to /etc/group.tmp which is temporary file store the edited /etc/group
@@ -659,3 +660,32 @@ sudo ./new_user -u testing -s /bin/bash -g wheel -i testing
 > cat /etc/group | grep <username>
 > ls -la ~
 > ```
+
+---
+
+### To Use the Script Directly
+You can run the above two script directly with the use of the following commands:
+```bash
+# Change directory to the user home directory
+cd ~
+# Create a temporary directory
+mkdir tmp
+# Change directory to the tmp directory
+cd tmp
+# Initialize a empty git repository
+git init
+# Clone the remote repository
+git clone https://github.com/tony-nlc/2420-Assignment-2.git main
+# Add execute permission for all script
+sudo chmod u+x ~/tmp/main/part1/install ~/tmp/main/part1/link ~/tmp/main/part1/setup ~/tmp/main/part2/new_user
+# Change directory to the part1 directory
+cd ~/tmp/main/part1
+# Run the setup script
+sudo ./setup
+# Change directory to the part2 directory
+cd ~/tmp/main/part2
+# Run the new_user script
+sudo ./new_user -u testing -s /bin/bash -g wheel -i testing
+# Remove the git repository
+rm -rf ~/tmp
+```
