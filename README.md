@@ -30,7 +30,7 @@ These scripts provide a fast way to configure a new environment by installing ne
 > Refer to Script 1.3
 
 **How to create a requirement file**
-
+```bash
 touch requirement
 ```
 
@@ -663,7 +663,7 @@ sudo ./new_user -u testing -s /bin/bash -g wheel -i testing
 
 ---
 
-### To Use the Script Directly
+## To Use the Script Directly
 You can run the above two script directly with the use of the following commands:
 ```bash
 # Change directory to the user home directory
